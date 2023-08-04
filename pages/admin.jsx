@@ -61,7 +61,7 @@ import {
   useInfiniteHits,
   useSearchBox,
 } from "react-instantsearch-hooks-web";
-import logo from "../public/logoadmin.svg";
+import logo from "../public/logo.svg";
 import Image from "next/image";
 import { searchClient } from "../pages/_app.js";
 import moment from "moment";
