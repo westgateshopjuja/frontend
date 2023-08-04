@@ -17,8 +17,8 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import UserData from "../context/userdata";
 
 export const searchClient = algoliasearch(
-  "YTL735AQT8",
-  "1c20f00d762ed7fa5d4d751839fa5990"
+  "E69WTTSMZF",
+  "7577cd1608899e6fec95e172f4e96052"
 );
 
 function App(props) {
@@ -71,7 +71,7 @@ function App(props) {
         >
           <ModalsProvider modals={{ login: TestModal /* ...other modals */ }}>
             <Notifications />
-            <InstantSearch searchClient={searchClient} indexName="thrifthub">
+            <InstantSearch searchClient={searchClient} indexName="products">
               <UserData>
                 <Component {...pageProps} />
               </UserData>
