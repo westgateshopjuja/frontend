@@ -35,7 +35,8 @@ export default function ProductSearch({
       </div>
       <div>
         <Text lineClamp={2} className="text-[#2c2c2c] font-medium">
-          <Highlight attribute="name" hit={action} />
+          {action?.name}
+          {/* <Highlight attribute="name" hit={action} /> */}
         </Text>
         <div className="flex space-x-2">
           {action?.was && (

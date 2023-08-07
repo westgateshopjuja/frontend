@@ -372,7 +372,7 @@ const Page = ({ admin }) => {
         <Tabs.Tab value="orders">Orders</Tabs.Tab>
         <Tabs.Tab value="transactions">Transactions</Tabs.Tab>
         <Tabs.Tab value="admins">Admins</Tabs.Tab>
-        <Tabs.Tab value="sections">Sections</Tabs.Tab>
+        {/* <Tabs.Tab value="sections">Sections</Tabs.Tab> */}
       </Tabs.List>
 
       <Tabs.Panel value="dashboard" pl="xs">
@@ -407,11 +407,11 @@ const Page = ({ admin }) => {
         </div>
       </Tabs.Panel>
 
-      <Tabs.Panel value="sections" pl="xs">
+      {/* <Tabs.Panel value="sections" pl="xs">
         <div className="max-h-[calc(100vh-170px)] mt-[15px] overflow-y-auto">
           <Sections />
         </div>
-      </Tabs.Panel>
+      </Tabs.Panel> */}
     </Tabs>
   );
 };
@@ -1925,6 +1925,6 @@ const Transactions = () => {
   );
 };
 
-const Sections = () => {
-  return <div>sections</div>;
-};
+// const Sections = () => {
+//   return <div>sections</div>;
+// };

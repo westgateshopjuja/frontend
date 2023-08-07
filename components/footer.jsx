@@ -8,14 +8,20 @@ export default function Footer() {
   return (
     <div className="pt-12 pb-4 px-4 space-y-12">
       <div className="space-y-3">
-        <a href="#" className="text-[#909090] block">
+        <a href="/contact" className="text-[#909090] block">
           CONTACT
         </a>
-        <a href="#" className="text-[#909090] block">
+        <a href="/help?with=terms" className="text-[#909090] block">
           TERMS OF SERVICES
         </a>
-        <a href="#" className="text-[#909090] block">
-          SHIPPING AND RETURNS
+        <a href="/help?with=delivery" className="text-[#909090] block">
+          DELIVERY
+        </a>
+        <a href="/help?with=pp" className="text-[#909090] block">
+          PRIVACY POLICY
+        </a>
+        <a href="/help?with=rne" className="text-[#909090] block">
+          RETURNS & EXCHANGES
         </a>
       </div>
       <div className="flex space-x-6 items-baseline">

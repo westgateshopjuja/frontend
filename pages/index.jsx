@@ -51,7 +51,7 @@ export default function Home() {
           </SpotlightProvider>
         </div>
 
-        <div className="p-4 py-0">
+        {/* <div className="p-4 py-0">
           <Carousel
             style={{ zIndex: -9 }}
             showThumbs={false}
@@ -66,72 +66,16 @@ export default function Home() {
               </div>
             ))}
           </Carousel>
-        </div>
+        </div> */}
 
         <div className="mt-8 space-y-3">
           <div className="flex justify-between px-4 text-[0.8rem] font-medium items-baseline">
-            <h1>Shop The Latest</h1>
-            <span className="text-[#228B22] font-light cursor-pointer">
-              View all
-            </span>
+            <h1>All products</h1>
           </div>
 
           <div className="gap-8 overflow-y-auto w-full p-4 grid grid-cols-2">
             {currentPageHits.map((_hit, i) => (
               <ProductCard key={i} hit={_hit} />
-            ))}
-          </div>
-
-          <div className="flex justify-between px-4 text-[0.8rem] font-medium items-baseline">
-            <h1>Categories</h1>
-          </div>
-
-          <div className="p-4">
-            <Chip.Group multiple value={value} onChange={setValue}>
-              {["earrings", "necklaces", "watches", "shoes", "hats"].map(
-                (el, i) => (
-                  <Chip
-                    key={i}
-                    style={{ display: "inline-block", margin: 8 }}
-                    value={el}
-                    variant="light"
-                    size="md"
-                    radius="xs"
-                    color="dark"
-                  >
-                    {el.charAt(0).toUpperCase() + el.slice(1, el.length)}
-                  </Chip>
-                )
-              )}
-            </Chip.Group>
-          </div>
-
-          <div className="gap-8 overflow-y-auto w-full grid grid-cols-2 p-4">
-            {[
-              {
-                id: 1,
-                name: "Lira Earrings",
-                price: 2000,
-              },
-              {
-                id: 2,
-                name: "Ollie Earrings",
-                price: 2000,
-              },
-              {
-                id: 3,
-                name: "Hal Earrings",
-                price: 2000,
-              },
-              {
-                id: 4,
-                name: "Kaede Earrings",
-                price: 2000,
-                was: 2500,
-                saved: true,
-              },
-            ].map((el, i) => (
-              <ProductCard key={i} product={el} />
             ))}
           </div>
         </div>
