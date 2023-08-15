@@ -158,7 +158,7 @@ export default function Login() {
     return (
       <div>
         <Logoheader />
-        <div className="p-4 space-y-8">
+        <div className="p-4 space-y-8 mt-[80px] relative">
           <h1 className="font-medium text-[1.5rem]">My account</h1>
           <div>
             <Tabs value={activeTab} onTabChange={setActiveTab} color="dark">
@@ -312,9 +312,9 @@ export default function Login() {
                 </div>
               </Tabs.Panel>
             </Tabs>
-            <Footer />
           </div>
         </div>
+        <Footer />
       </div>
     );
   }

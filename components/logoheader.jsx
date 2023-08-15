@@ -194,7 +194,7 @@ export default function Logoheader() {
 
   const getEstimatedFees = () => {
     // an api call that looks at the number of products to be delivered , cost of products , distance to determine the delivery fees
-    return 150;
+    return 50;
   };
 
   const handlePay = async () => {
@@ -616,6 +616,16 @@ export default function Logoheader() {
                           label={<Address address={address} noActions />}
                         />
                       ))}
+                      {data?.addresses?.length < 1 && (
+                        <div className="bg-gray-100 p-4 border-t-2 border-[#228B22]">
+                          <Text>
+                            No addresses added yet. Add an address in the{" "}
+                            <a href="/account" className="underline">
+                              account page
+                            </a>{" "}
+                          </Text>
+                        </div>
+                      )}
                     </Stack>
                   </Radio.Group>
                 </div>

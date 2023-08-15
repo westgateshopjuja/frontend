@@ -1,30 +1,32 @@
 import { Chip, Select, Text } from "@mantine/core";
-import { IconSearch, IconX } from "@tabler/icons";
+import { IconSearch } from "@tabler/icons";
 
 import { SpotlightProvider, spotlight } from "@mantine/spotlight";
 import { Carousel } from "react-responsive-carousel";
 import { Footer, Logoheader, ProductCard, ProductSearch } from "../components";
 
 import { useRouter } from "next/router";
-import { useState } from "react";
-import { useInfiniteHits, useSearchBox } from "react-instantsearch-hooks-web";
+import { useRef, useState } from "react";
+import { useInfiniteHits, useSearchBox } from "react-instantsearch";
 
 export default function Home() {
   const [value, setValue] = useState(["earrings"]);
 
-  const { query, refine, clear, isSearchStalled } = useSearchBox();
+  const { refine } = useSearchBox();
   const router = useRouter();
+  const { hits, isLastPage, showMore } = useInfiniteHits();
 
-  const {
-    hits,
-    currentPageHits,
-    results,
-    isFirstPage,
-    isLastPage,
-    showPrevious,
-    showMore,
-    sendEvent,
-  } = useInfiniteHits();
+  const scrollDiv = useRef();
+
+  const fetchMore = () => {
+    if (
+      scrollDiv.current.offsetHeight + scrollDiv.current.scrollTop >=
+        scrollDiv.current.scrollHeight - 100 &&
+      !isLastPage
+    ) {
+      showMore();
+    }
+  };
 
   return (
     <div>
@@ -73,8 +75,12 @@ export default function Home() {
             <h1>All products</h1>
           </div>
 
-          <div className="gap-8 overflow-y-auto w-full p-4 grid grid-cols-2">
-            {currentPageHits.map((_hit, i) => (
+          <div
+            className="gap-8 overflow-y-auto w-full p-4 grid grid-cols-2 max-h-[1000px]"
+            ref={scrollDiv}
+            onScroll={fetchMore}
+          >
+            {hits.map((_hit, i) => (
               <ProductCard key={i} hit={_hit} />
             ))}
           </div>

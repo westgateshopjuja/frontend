@@ -1,20 +1,8 @@
 import { Badge, NavLink } from "@mantine/core";
-import { useRefinementList } from "react-instantsearch-hooks-web";
+import { useRefinementList } from "react-instantsearch";
 
 export default function CustomRefinementList(props) {
-  const {
-    items,
-    hasExhaustiveItems,
-    createURL,
-    refine,
-    sendEvent,
-    searchForItems,
-    isFromSearch,
-    canRefine,
-    canToggleShowMore,
-    isShowingMore,
-    toggleShowMore,
-  } = useRefinementList(props);
+  const { items } = useRefinementList(props);
 
   return (
     <div>

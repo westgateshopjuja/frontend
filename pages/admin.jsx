@@ -51,16 +51,13 @@ import dynamic from "next/dynamic";
 import { useClient, useMutation, useQuery } from "urql";
 import { notifications } from "@mantine/notifications";
 import {
-  Configure,
   Highlight,
   Hits,
-  Index,
-  InfiniteHits,
   InstantSearch,
-  SearchBox,
   useInfiniteHits,
   useSearchBox,
-} from "react-instantsearch-hooks-web";
+} from "react-instantsearch";
+
 import logo from "../public/logo.svg";
 import Image from "next/image";
 import { searchClient } from "../pages/_app.js";
@@ -416,6 +413,48 @@ const Page = ({ admin }) => {
   );
 };
 
+const ProductList = () => {
+  const { hits, isLastPage, showMore } = useInfiniteHits();
+
+  const scrollDiv = useRef();
+
+  const fetchMore = () => {
+    if (
+      scrollDiv.current.offsetHeight + scrollDiv.current.scrollTop >=
+        scrollDiv.current.scrollHeight - 100 &&
+      !isLastPage
+    ) {
+      showMore();
+    }
+  };
+
+  return (
+    <>
+      <div
+        className="w-full space-y-6 max-h-[1000px]"
+        ref={scrollDiv}
+        onScroll={fetchMore}
+      >
+        {hits.map((hit, i) => (
+          <ProductCardAdmin key={i} hit={hit} />
+        ))}
+      </div>
+    </>
+  );
+};
+
+const SearchBox = () => {
+  const { refine } = useSearchBox();
+  return (
+    <Input
+      icon={<IconSearch size={16} />}
+      variant="filled"
+      placeholder="Search"
+      onChange={(e) => refine(e.target.value)}
+    />
+  );
+};
+
 const Products = ({ admin }) => {
   const ADD_PRODUCT = `
     mutation ADD_PRODUCT(
@@ -656,16 +695,8 @@ const Products = ({ admin }) => {
 
   return (
     <div className="space-y-8 py-6 relative max-h-[calc(100vh-96px)] h-[calc(100vh-96px)] overflow-y-auto">
-      <Input
-        icon={<IconSearch size={16} />}
-        variant="filled"
-        placeholder="Search"
-      />
-
-      <Accordion>
-        <Hits hitComponent={ProductCardAdmin} />
-      </Accordion>
-
+      <SearchBox />
+      <ProductList />
       <Button
         h={56}
         w={56}
@@ -682,7 +713,6 @@ const Products = ({ admin }) => {
       >
         <IconPlus />
       </Button>
-
       <Modal
         opened={permissionModal}
         onClose={() => setPermissionModal(false)}
@@ -697,7 +727,6 @@ const Products = ({ admin }) => {
           </p>
         </div>
       </Modal>
-
       <Modal
         opened={addModal}
         onClose={handleCloseModal}
@@ -1585,8 +1614,9 @@ const Dashboard = () => {
         <Card shadow="sm" padding="xs" radius="md" withBorder>
           <p className="text-[0.8rem] text-gray-600">Fastest moving products</p>
           <div className="p-4 max-h-[400px] overflow-y-auto mt-6">
-            {data?.getStatPage?.fastestMoving.map((moving) => (
+            {data?.getStatPage?.fastestMoving.map((moving, i) => (
               <MovingProduct
+                key={i}
                 opm={moving?.ordersPerMonth}
                 product={moving?.product}
               />
@@ -1599,8 +1629,9 @@ const Dashboard = () => {
         <Card shadow="sm" padding="xs" radius="md" withBorder>
           <p className="text-[0.8rem] text-gray-600">Slowest moving products</p>
           <div className="p-4 max-h-[400px] overflow-y-auto mt-6">
-            {data?.getStatPage?.slowestMoving.map((moving) => (
+            {data?.getStatPage?.slowestMoving.map((moving, i) => (
               <MovingProduct
+                key={i}
                 opm={moving?.ordersPerMonth}
                 product={moving?.product}
                 color="red"
@@ -1817,8 +1848,8 @@ const Orders = () => {
             return order;
           })
           .sort((a, b) => Number(b?.createdAt) - Number(a?.createdAt))
-          .map((order) => (
-            <OrderAdmin order={order} refresh={reexecuteQuery} />
+          .map((order, i) => (
+            <OrderAdmin key={i} order={order} refresh={reexecuteQuery} />
           ))}
       </div>
     </div>

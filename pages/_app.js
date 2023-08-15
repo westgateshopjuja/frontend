@@ -10,7 +10,7 @@ import { ModalsProvider } from "@mantine/modals";
 import { withUrqlClient } from "next-urql";
 import { SessionProvider, signIn } from "next-auth/react";
 import algoliasearch from "algoliasearch/lite";
-import { InstantSearch } from "react-instantsearch-hooks-web";
+import { InstantSearch, Configure } from "react-instantsearch";
 
 import "tailwindcss/tailwind.css";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
@@ -72,6 +72,11 @@ function App(props) {
           <ModalsProvider modals={{ login: TestModal /* ...other modals */ }}>
             <Notifications />
             <InstantSearch searchClient={searchClient} indexName="products">
+              <Configure
+                // analytics={false}
+                // filters="free_shipping:true"
+                hitsPerPage={30}
+              />
               <UserData>
                 <Component {...pageProps} />
               </UserData>
