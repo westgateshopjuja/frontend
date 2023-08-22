@@ -2,6 +2,7 @@ import { Carousel } from "react-responsive-carousel";
 import { Footer, Logoheader, ProductCard, Review } from "../../components";
 import {
   Accordion,
+  Badge,
   Button,
   Divider,
   Drawer,
@@ -44,6 +45,12 @@ export default function Product() {
             thumbnail
             price
             label
+            sale {
+              salePrice
+              startTime
+              endTime
+            }
+            available
           }
           additionalInformation{
             label
@@ -236,8 +243,14 @@ export default function Product() {
 
         <div className="p-4 space-y-8">
           <div className="space-y-3">
+            <p className="opacity-70 text-gray-600 text-[0.9rem] mb-2">
+              {product?.category}
+            </p>
             <Text fz="lg" lineClamp={2} className="text-[#2c2c2c] font-medium">
-              {product?.name}
+              {product?.name}{" "}
+              {product?.variants.map((variant) => (
+                <Badge>{variant?.label}</Badge>
+              ))}
             </Text>
 
             <div className="flex space-x-2">
@@ -246,7 +259,9 @@ export default function Product() {
                   Ksh. {product?.was}
                 </p>
               )}
-              <p className="text-[#A18A68] text-[0.9rem]">{getPriceLabel()}</p>
+              <p className="text-[#228B22] text-[0.9rem] font-bold">
+                {getPriceLabel()}
+              </p>
             </div>
           </div>
 
@@ -299,11 +314,13 @@ export default function Product() {
                   <Radio
                     key={i}
                     value={variant?.label}
-                    disabled={userData?.cart.some(
-                      (cartItem) =>
-                        cartItem?.product.id == router?.query?.id &&
-                        cartItem?.variant == variant?.label
-                    )}
+                    disabled={
+                      userData?.cart.some(
+                        (cartItem) =>
+                          cartItem?.product.id == router?.query?.id &&
+                          cartItem?.variant == variant?.label
+                      ) || !variant?.available
+                    }
                     label={
                       <div className="flex space-x-4  mt-[-30px]">
                         {variant?.thumbnail ? (
@@ -314,21 +331,43 @@ export default function Product() {
                             width={70}
                           />
                         ) : (
-                          <div className=" border-gray-400 border-2 p-7 justify-center align-middle min-h-[70px] min-w-[70px]">
-                            <p>{variant?.label}</p>
+                          <div className=" border-gray-400 border-2  min-w-[80px] max-h-[80px] min-h-[80px] relative justify-center align-middle">
+                            <p className="absolute left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
+                              {variant?.label}
+                            </p>
                           </div>
                         )}
                         <div className="h-full relative">
-                          <p className="text-[#A18A68] font-medium mt-5">
-                            Ksh.{variant?.price}{" "}
-                          </p>
+                          <div className="mt-5">
+                            <p
+                              className={
+                                variant?.sale?.endTime
+                                  ? "line-through text-red-700 font-medium inline mt-5"
+                                  : "text-[#228B22] font-medium mt-5"
+                              }
+                            >
+                              Ksh. {variant?.price}
+                            </p>
+                          </div>
+
+                          {variant?.sale?.endTime && (
+                            <p className="text-[#228B22] font-medium  inline ">
+                              Ksh. {variant?.sale?.salePrice}
+                            </p>
+                          )}
+
                           {userData?.cart.some(
                             (cartItem) =>
                               cartItem?.product.id == router?.query?.id &&
                               cartItem?.variant == variant?.label
                           ) && (
-                            <p className="text-red-500 mt-2">
+                            <p className="text-orange-500 mt-2">
                               (Already in cart)
+                            </p>
+                          )}
+                          {!variant?.available && (
+                            <p className="text-orange-500 mt-2">
+                              Product unavailable
                             </p>
                           )}
                         </div>
@@ -357,7 +396,7 @@ export default function Product() {
             </Text>
 
             <span
-              className="text-[#A18A68] hover:cursor-pointer flex mt-2 mb-4"
+              className="text-[#228B22] hover:cursor-pointer flex mt-2 mb-4"
               onClick={() =>
                 lineClamp == 2 ? setLineClamp(10) : setLineClamp(2)
               }
@@ -395,7 +434,7 @@ export default function Product() {
                 <Accordion.Panel>
                   <div className="space-y-8">
                     {product?.reviews.length < 1 ? (
-                      <div className="bg-gray-100 p-4 border-t-2 border-[#A18A68]">
+                      <div className="bg-gray-100 p-4 border-t-2 border-[#228B22] text-[#228B22]">
                         <Text>No reviews yet.</Text>
                       </div>
                     ) : (
@@ -439,10 +478,9 @@ export default function Product() {
               ))}
             </div>
           </div>
-
-          <Footer />
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

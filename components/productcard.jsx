@@ -1,4 +1,4 @@
-import { Text, UnstyledButton } from "@mantine/core";
+import { Badge, Text, UnstyledButton } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconBookmark, IconStar } from "@tabler/icons";
 import { signIn, useSession } from "next-auth/react";
@@ -21,6 +21,31 @@ export default function ProductCard({ hit }) {
         : `Ksh. ${Math.min(...prices)} - ${Math.max(...prices)}`;
     }
     return "";
+  };
+
+  const calculatePercentageDifference = (price, salePrice) => {
+    return ((price - salePrice) / price) * 100;
+  };
+
+  const findLargestPercentageDifference = () => {
+    let largestDifference = 0;
+
+    hit?.variants.forEach((variant) => {
+      const { price, sale } = variant;
+
+      if (sale?.endTime) {
+        const percentageDifference = calculatePercentageDifference(
+          price,
+          sale?.salePrice
+        );
+
+        if (percentageDifference > largestDifference) {
+          largestDifference = percentageDifference;
+        }
+      }
+    });
+
+    return largestDifference;
   };
 
   const router = useRouter();
@@ -71,21 +96,31 @@ export default function ProductCard({ hit }) {
             right: 0,
             zIndex: 10,
             background: "#f1f1f1",
-            width: 40,
-            height: 40,
+            width: 35,
+            height: 35,
             borderRadius: "50%",
           }}
           onClick={handleSave}
         >
           <svg
+            className="ml-[8px]"
             xmlns="http://www.w3.org/2000/svg"
+            class="icon icon-tabler icon-tabler-heart-filled"
             width="20"
             height="20"
             viewBox="0 0 24 24"
-            fill="#228B22"
-            className="ml-[10px]"
+            stroke-width="1.5"
+            stroke="#2c3e50"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           >
-            <path d="M19 24l-7-6-7 6v-24h14v24z" />
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path
+              d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z"
+              stroke-width="0"
+              fill="red"
+            />
           </svg>
         </UnstyledButton>
       ) : (
@@ -96,24 +131,40 @@ export default function ProductCard({ hit }) {
             right: 0,
             zIndex: 10,
             background: "#f1f1f1",
-            width: 40,
-            height: 40,
+            width: 35,
+            height: 35,
             borderRadius: "50%",
           }}
           onClick={handleSave}
         >
           <svg
+            className="ml-[8px]"
+            xmlns="http://www.w3.org/2000/svg"
+            class="icon icon-tabler icon-tabler-heart"
             width="20"
             height="20"
-            xmlns="http://www.w3.org/2000/svg"
-            fillRule="evenodd"
-            clipRule="evenodd"
             viewBox="0 0 24 24"
-            className="ml-[10px]"
+            stroke-width="1.5"
+            stroke="#2c3e50"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           >
-            <path d="M5 0v24l7-6 7 6v-24h-14zm1 1h12v20.827l-6-5.144-6 5.144v-20.827z" />
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" />
           </svg>
         </UnstyledButton>
+      )}
+
+      {findLargestPercentageDifference() != 0 && (
+        <Badge
+          radius={null}
+          size="lg"
+          color="orange"
+          className="absolute top-0 left-0 z-20"
+        >
+          -{findLargestPercentageDifference().toFixed(0)}%
+        </Badge>
       )}
 
       <Carousel
@@ -131,6 +182,9 @@ export default function ProductCard({ hit }) {
       </Carousel>
 
       <div onClick={() => router.push(`/product/${hit?.id}`)}>
+        <p className="opacity-70 text-gray-600 text-[0.9rem] mb-2">
+          {hit?.category}
+        </p>
         <Text lineClamp={2} className="text-[#2c2c2c] font-medium">
           {hit?.name}
         </Text>
@@ -140,7 +194,9 @@ export default function ProductCard({ hit }) {
               Ksh. {hit?.was}
             </p>
           )}
-          <p className="text-[#228B22] text-[0.9rem]">{getPriceLabel()}</p>
+          <p className="text-[#228B22] text-[0.9rem] font-medium">
+            {getPriceLabel()}
+          </p>
         </div>
       </div>
     </div>

@@ -12,7 +12,7 @@ import ProductCardAdmin from "./productcardadmin";
 import AdminCard from "./admincard";
 import BarChart from "./barchart";
 import OrderAdmin from "./orderadmin";
-
+import Editable from "./editable";
 export {
   Footer,
   Logoheader,
@@ -28,4 +28,5 @@ export {
   AdminCard,
   BarChart,
   OrderAdmin,
+  Editable,
 };

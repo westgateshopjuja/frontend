@@ -1,6 +1,5 @@
 import { Text } from "@mantine/core";
 import { useRouter } from "next/router";
-import { Highlight } from "react-instantsearch-hooks-web";
 
 export default function ProductSearch({
   action,
