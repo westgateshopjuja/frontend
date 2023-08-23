@@ -25,7 +25,7 @@ export default function ProductSearch({
   const router = useRouter();
   return (
     <div className="flex space-x-3 w-full p-3">
-      <div className="w-1/3">
+      <div className="w-1/3 max-w-[70px]">
         <img
           onClick={() => router.push(`/product/${action?.id}`)}
           className="w-full"

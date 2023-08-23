@@ -9,8 +9,8 @@ export default function Contact() {
   return (
     <div>
       <Logoheader />
-      <div className="p-4 space-y-8">
-        <h1 className="font-medium text-[1.5rem]">Contact</h1>
+      <div className="p-4 space-y-8 relative mt-[80px]">
+        <h1 className="font-medium text-[1.2rem]">Contact Us</h1>
 
         <TextInput
           placeholder="ex. Returns Enquiry"

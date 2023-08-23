@@ -19,11 +19,13 @@ export default function Help() {
     <div>
       <Logoheader />
       <div className="p-4 space-y-12 relative mt-[80px]">
-        <h1 className="font-medium text-[1.5rem]">Help</h1>
+        <h1 className="font-medium text-[1.2rem]">Help</h1>
 
         <Accordion value={helpWith} onChange={setHelpWith}>
           <Accordion.Item value="terms">
-            <Accordion.Control>Terms of Services</Accordion.Control>
+            <Accordion.Control>
+              <h1 className="text-[1.2rem] font-semibold">Terms of Services</h1>
+            </Accordion.Control>
             <Accordion.Panel>
               By using our website (the "Site") and services offered by Westgate
               mart (referred to as "we," "us," or "our"), you agree to comply
@@ -91,7 +93,9 @@ export default function Help() {
           </Accordion.Item>
 
           <Accordion.Item value="delivery">
-            <Accordion.Control>Delivery</Accordion.Control>
+            <Accordion.Control>
+              <h1 className="text-[1.2rem] font-semibold">Delivery</h1>
+            </Accordion.Control>
             <Accordion.Panel>
               <strong>Delivery Fee</strong>: A flat delivery fee of 50 Kenyan
               Shillings (KES) will apply for orders within the Juja vicinity.
@@ -116,7 +120,9 @@ export default function Help() {
           </Accordion.Item>
 
           <Accordion.Item value="pp">
-            <Accordion.Control>Privacy Policy</Accordion.Control>
+            <Accordion.Control>
+              <h1 className="text-[1.2rem] font-semibold">Privacy Policy</h1>
+            </Accordion.Control>
             <Accordion.Panel>
               At Westgate mart, we are committed to protecting your privacy and
               ensuring the security of your personal information. This Privacy
@@ -210,7 +216,11 @@ export default function Help() {
           </Accordion.Item>
 
           <Accordion.Item value="rne">
-            <Accordion.Control>Return & Exchanges</Accordion.Control>
+            <Accordion.Control>
+              <h1 className="text-[1.2rem] font-semibold">
+                Return & Exchanges
+              </h1>
+            </Accordion.Control>
             <Accordion.Panel>
               At Westgate mart, we want your shopping experience to be
               satisfactory and hassle-free. To ensure that, we have established
@@ -307,7 +317,7 @@ export default function Help() {
           uppercase
           fullWidth
         >
-          <span className="font-light">Contact</span>
+          <span className="font-light">Contact Us</span>
         </Button>
 
         <Footer />

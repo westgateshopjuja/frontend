@@ -15,7 +15,9 @@ export default function CustomRefinementList(props) {
             {item?.value}
           </a>
 
-          <Badge variant="filled">{item?.count}</Badge>
+          <Badge variant="filled" color="green">
+            {item?.count}
+          </Badge>
         </div>
       ))}
     </div>

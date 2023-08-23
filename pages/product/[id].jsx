@@ -24,6 +24,8 @@ import { notifications } from "@mantine/notifications";
 import { Userdatacontext } from "../../context/userdata";
 
 import { signIn, useSession } from "next-auth/react";
+import { Configure, InstantSearch, useHits } from "react-instantsearch";
+import { searchClient } from "../_app";
 
 export default function Product() {
   const router = useRouter();
@@ -226,22 +228,24 @@ export default function Product() {
   return (
     <div>
       <Logoheader />
-      <div className="mt-[80px] relative">
-        <Carousel
-          showThumbs={true}
-          showStatus={false}
-          autoPlay
-          infiniteLoop
-          showIndicators={false}
-        >
-          {product?.images.map((image, i) => (
-            <div key={i}>
-              <img src={image} className="w-full" />
-            </div>
-          ))}
-        </Carousel>
+      <div className="mt-[80px] relative md:flex">
+        <div className="md:w-1/2">
+          <Carousel
+            showThumbs={true}
+            showStatus={false}
+            autoPlay
+            infiniteLoop
+            showIndicators={false}
+          >
+            {product?.images.map((image, i) => (
+              <div key={i}>
+                <img src={image} className="w-full" />
+              </div>
+            ))}
+          </Carousel>
+        </div>
 
-        <div className="p-4 space-y-8">
+        <div className="p-4 space-y-8 md:w-1/2">
           <div className="space-y-3">
             <p className="opacity-70 text-gray-600 text-[0.9rem] mb-2">
               {product?.category}
@@ -415,12 +419,18 @@ export default function Product() {
                 </Accordion.Control>
                 <Accordion.Panel>
                   <div className="space-y-2 p-2">
-                    {product?.additionalInformation.map((info, i) => (
-                      <p key={i} className="font-medium">
-                        {info?.label}:{" "}
-                        <span className="font-light">{info?.value}</span>
-                      </p>
-                    ))}
+                    {product?.additionalInformation.length < 1 ? (
+                      <div className="bg-gray-100 p-4 border-t-2 border-[#228B22] text-[#228B22]">
+                        <Text>No additional Information.</Text>
+                      </div>
+                    ) : (
+                      product?.additionalInformation.map((info, i) => (
+                        <p key={i} className="font-medium">
+                          {info?.label}:{" "}
+                          <span className="font-light">{info?.value}</span>
+                        </p>
+                      ))
+                    )}
                   </div>
                 </Accordion.Panel>
               </Accordion.Item>
@@ -450,33 +460,14 @@ export default function Product() {
 
           <div className="mt-12 space-y-8">
             <p className="font-medium text-[1.3rem]">Similar Items</p>
-            <div className="w-full flex overflow-x-auto space-x-8">
-              {[
-                {
-                  id: 1,
-                  name: "Lira Earrings",
-                  price: 2000,
-                },
-                {
-                  id: 2,
-                  name: "Ollie Earrings",
-                  price: 2000,
-                },
-                {
-                  id: 3,
-                  name: "Hal Earrings",
-                  price: 2000,
-                },
-                {
-                  id: 4,
-                  name: "Kaede Earrings",
-                  price: 2000,
-                  was: 2500,
-                },
-              ].map((el, i) => (
-                <ProductCard product={el} key={i} />
-              ))}
-            </div>
+
+            <InstantSearch searchClient={searchClient} indexName="products">
+              <Configure
+                filters={`category:'${product?.category}'`}
+                hitsPerPage={10}
+              />
+              <ProductList />
+            </InstantSearch>
           </div>
         </div>
       </div>
@@ -484,3 +475,15 @@ export default function Product() {
     </div>
   );
 }
+
+const ProductList = () => {
+  const { hits } = useHits();
+
+  return (
+    <div className="w-full flex overflow-x-auto space-x-8">
+      {hits.map((_hit, i) => (
+        <ProductCard key={i} hit={_hit} />
+      ))}
+    </div>
+  );
+};

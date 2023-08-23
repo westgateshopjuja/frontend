@@ -101,9 +101,25 @@ export default function Orders() {
             }
           })
           .sort((a, b) => Number(b?.createdAt) - Number(a?.createdAt))
-          .map((order, i) => (
-            <Order key={i} order={order} />
-          ))}
+          .map((order, i) => {
+            let deliveryLocation;
+            userData?.addresses?.map((address) => {
+              if (
+                order?.deliveryLocation?.lat == address.lat &&
+                order?.deliveryLocation?.lng == address?.lng
+              ) {
+                deliveryLocation = address.label;
+              }
+            });
+
+            return (
+              <Order
+                key={i}
+                order={order}
+                deliveryLocation={deliveryLocation}
+              />
+            );
+          })}
 
         {data?.getOrders.length == 0 && (
           <>

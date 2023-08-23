@@ -87,7 +87,7 @@ export default function ProductCard({ hit }) {
   };
 
   return (
-    <div className="col-span-1 space-y-2 relative hover:cursor-pointer min-w-[30vw]">
+    <div className="col-span-1 space-y-2 relative hover:cursor-pointer min-w-[40vw] md:min-w-[23vw] lg:min-w-[18vw]">
       {data?.saved.filter((item) => item.id == hit?.id).length > 0 ? (
         <UnstyledButton
           style={{
@@ -95,7 +95,6 @@ export default function ProductCard({ hit }) {
             top: 0,
             right: 0,
             zIndex: 10,
-            background: "#f1f1f1",
             width: 35,
             height: 35,
             borderRadius: "50%",
@@ -130,7 +129,6 @@ export default function ProductCard({ hit }) {
             top: 0,
             right: 0,
             zIndex: 10,
-            background: "#f1f1f1",
             width: 35,
             height: 35,
             borderRadius: "50%",
@@ -175,7 +173,7 @@ export default function ProductCard({ hit }) {
         autoPlay
       >
         {hit?.images.map((image, i) => (
-          <div key={i}>
+          <div key={i} onClick={() => router.push(`/product/${hit?.id}`)}>
             <img className="w-full h-[200px] object-contain" src={image} />
           </div>
         ))}

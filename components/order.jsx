@@ -1,8 +1,10 @@
 import { Accordion, Badge, Kbd, Text } from "@mantine/core";
 import moment from "moment";
 import CartItem from "./cartitem";
+import { IconLocation } from "@tabler/icons";
+import Link from "next/link";
 
-export default function Order({ order }) {
+export default function Order({ order, deliveryLocation }) {
   const getTotal = () => {
     let sum = 0;
 
@@ -69,6 +71,20 @@ export default function Order({ order }) {
         </Text>
       </div>
 
+      <div className="flex justify-between w-full">
+        <Text className="uppercase font-medium">Delivery address</Text>
+
+        <Link
+          href={`https://maps.google.com/?q=${order?.deliveryLocation.lat},${order?.deliveryLocation.lng}&ll=${order?.deliveryLocation.lat},${order.deliveryLocation.lng}&z=15`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className=" hover:text-blue-600 flex "
+        >
+          <Text fw="lighter">{deliveryLocation && deliveryLocation}</Text>
+          <IconLocation size={16} style={{ marginTop: 6, marginLeft: 8 }} />
+        </Link>
+      </div>
+
       <div>
         <Accordion>
           <Accordion.Item value="products">
@@ -76,7 +92,7 @@ export default function Order({ order }) {
               <Text className="uppercase font-medium">Products</Text>
             </Accordion.Control>
             <Accordion.Panel>
-              <div className="space-y-2">
+              <div className="space-y-2 md:space-y-0 md:flex md:space-x-8 w-full md:overflow-x-auto">
                 {order?.items.map((item, i) => (
                   <CartItem key={i} order={item} noControls />
                 ))}

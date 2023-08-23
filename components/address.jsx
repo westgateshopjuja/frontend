@@ -8,6 +8,7 @@ import {
   Text,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { IconTrash } from "@tabler/icons";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
@@ -83,14 +84,14 @@ export default function Address({ address, noActions }) {
   };
 
   return (
-    <Card shadow="sm" padding="xs" radius="md" withBorder className="w-full">
+    <div className="w-full shadow-lg rounded-lg p-4">
       <Group position="apart" mt="md" mb="xs">
         <Text weight={500}>{address?.label}</Text>
-        {address?.default && (
+        {/* {address?.default && (
           <Badge color="#228B22" variant="light">
             Default
           </Badge>
-        )}
+        )} */}
       </Group>
 
       <Link
@@ -105,7 +106,7 @@ export default function Address({ address, noActions }) {
       <Space h={12} />
       {!noActions && (
         <div className="flex space-x-2">
-          <Button
+          {/* <Button
             uppercase
             color="dark"
             variant="subtle"
@@ -114,19 +115,35 @@ export default function Address({ address, noActions }) {
             onClick={handleToggleDefault}
           >
             toggle default
-          </Button>
+          </Button> */}
 
-          <Popover width={200} position="bottom" withArrow shadow="md">
+          <Popover
+            trapFocus
+            width={150}
+            position="top-end"
+            withArrow
+            shadow="md"
+            styles={() => ({
+              dropdown: {
+                zIndex: 30,
+              },
+            })}
+          >
             <Popover.Target>
-              <Button fullWidth color="dark" variant="subtle" uppercase>
+              <Button
+                color="red"
+                variant="light"
+                fullWidth
+                size="sm"
+                leftIcon={<IconTrash size={15} />}
+                uppercase
+              >
                 remove
               </Button>
             </Popover.Target>
             <Popover.Dropdown>
-              <Text size="sm" fw="bold">
-                Do you want to remove this address?{" "}
-              </Text>
-              <div className="flex justify-between mt-8 space-x-12">
+              <Text size="sm">Do you want to remove this address? </Text>
+              <div className="flex justify-between mt-8 space-x-2">
                 <Button
                   onClick={handleRemove}
                   loading={loading}
@@ -151,6 +168,6 @@ export default function Address({ address, noActions }) {
           </Popover>
         </div>
       )}
-    </Card>
+    </div>
   );
 }

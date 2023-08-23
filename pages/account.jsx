@@ -204,59 +204,63 @@ export default function Login() {
               </Tabs.Panel>
 
               <Tabs.Panel value="addresses" pt="xs">
-                <div className="space-y-8 py-8">
-                  {data?.addresses.length > 0 ? (
-                    <>
-                      <Text fw="lighter">
-                        The following addresses will be used on the checkout
-                        page.
-                      </Text>
-                      <div className="space-y-2">
-                        {data?.addresses.map((address, i) => (
-                          <Address key={i} address={address} />
-                        ))}
+                <div className="md:flex md:justify-between">
+                  <div className="space-y-8 py-8 md:w-[40%]">
+                    {data?.addresses.length > 0 ? (
+                      <>
+                        <Text fw="lighter">
+                          The following addresses will be used on the checkout
+                          page.
+                        </Text>
+                        <div className="space-y-2">
+                          {data?.addresses.map((address, i) => (
+                            <Address key={i} address={address} />
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="bg-gray-100 p-4 border-t-2 border-[#228B22]">
+                        <Text>No addresses found.</Text>
                       </div>
-                    </>
-                  ) : (
-                    <div className="bg-gray-100 p-4 border-t-2 border-[#228B22]">
-                      <Text>No addresses found.</Text>
+                    )}
+                  </div>
+
+                  <div className="md:w-[50%] md:py-8">
+                    <h1 className="font-medium text-[1.5rem]">
+                      Add a new address
+                    </h1>
+
+                    <div className="space-y-3">
+                      <TextInput
+                        placeholder="ex. Home"
+                        label="Address label"
+                        withAsterisk
+                        value={address?.label}
+                        onChange={(e) => {
+                          setAddress((address) => {
+                            return {
+                              ...address,
+                              label: e.target.value,
+                            };
+                          });
+                        }}
+                      />
+
+                      <p className="font-light">
+                        We'll show you pickup stations near you when you
+                        checkout an order.
+                      </p>
+                      <Button
+                        fullWidth
+                        fw="lighter"
+                        uppercase
+                        color="dark"
+                        loading={loadingAddress}
+                        onClick={handleSaveAddress}
+                      >
+                        save address
+                      </Button>
                     </div>
-                  )}
-
-                  <h1 className="font-medium text-[1.5rem]">
-                    Add a new address
-                  </h1>
-
-                  <div className="space-y-3">
-                    <TextInput
-                      placeholder="ex. Home"
-                      label="Address label"
-                      withAsterisk
-                      value={address?.label}
-                      onChange={(e) => {
-                        setAddress((address) => {
-                          return {
-                            ...address,
-                            label: e.target.value,
-                          };
-                        });
-                      }}
-                    />
-
-                    <p className="font-light">
-                      We'll show you pickup stations near you when you checkout
-                      an order.
-                    </p>
-                    <Button
-                      fullWidth
-                      fw="lighter"
-                      uppercase
-                      color="dark"
-                      loading={loadingAddress}
-                      onClick={handleSaveAddress}
-                    >
-                      save address
-                    </Button>
                   </div>
                 </div>
               </Tabs.Panel>

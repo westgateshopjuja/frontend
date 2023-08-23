@@ -55,8 +55,8 @@ export default function CartItem({ order, noControls }) {
     <div
       className={
         noControls
-          ? "flex space-x-2 pb-4"
-          : "flex space-x-2 border-b-[0.5px] pb-4"
+          ? "flex space-x-2 pb-4 min-w-[220px]"
+          : "flex space-x-2 border-b-[0.5px] pb-4 min-w[220px]"
       }
     >
       <div className="w-[35%]">
@@ -88,16 +88,16 @@ export default function CartItem({ order, noControls }) {
                   .toString()
                   .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
           </p>
-          {!noControls && (
-            <Badge
-              color="dark"
-              radius="xs"
-              variant="filled"
-              style={{ marginTop: 4 }}
-            >
-              {order?.variant}
-            </Badge>
-          )}
+          {/* {!noControls && ( */}
+          <Badge
+            color="dark"
+            radius="xs"
+            variant="filled"
+            style={{ marginTop: 4 }}
+          >
+            {order?.variant}
+          </Badge>
+          {/* )} */}
         </div>
 
         {noControls && <p>Qty: {order?.quantity}</p>}

@@ -38,7 +38,7 @@ export default function Saved() {
       <InstantSearch searchClient={searchClient} indexName="products">
         <div className="mt-[80px] relative">
           <div className="flex justify-between px-8 w-full fixed top-[72px] left-0 z-40 bg-white pb-3">
-            <h1 className="font-medium text-[1.5rem] mt-2">
+            <h1 className="font-medium text-[1.2rem] mt-2">
               {titleCase(category)}
             </h1>
             <span className="block text-[#909090] mt-3">
@@ -75,7 +75,7 @@ const ProductList = () => {
     <div
       ref={scrollDiv}
       onScroll={fetchMore}
-      className="grid grid-cols-2 gap-8 max-h-[1000px]"
+      className="gap-8 overflow-y-auto w-full px-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 max-h-[1000px]"
     >
       {hits.map((_hit, i) => (
         <ProductCard key={i} hit={_hit} />

@@ -1,4 +1,5 @@
 import {
+  Badge,
   Button,
   Card,
   Divider,
@@ -14,6 +15,7 @@ import {
   Transition,
   UnstyledButton,
   useMantineTheme,
+  Menu,
 } from "@mantine/core";
 import {
   IconCheck,
@@ -23,6 +25,7 @@ import {
   IconLogout,
   IconUser,
 } from "@tabler/icons";
+import { useMediaQuery } from "@mantine/hooks";
 import { Turn as Hamburger } from "hamburger-react";
 import { useContext, useEffect, useState } from "react";
 import CartItem from "./cartitem";
@@ -38,6 +41,7 @@ import Spinner from "react-svg-spinner";
 import logo from "../public/logo.svg";
 import Image from "next/image";
 import CustomRefinementList from "./refinementlist";
+import Error from "next/error";
 
 let socket;
 
@@ -59,6 +63,8 @@ export default function Logoheader() {
   const [status, setStatus] = useState("");
   const [loadingPay, setLoadingPay] = useState(false);
   const [txDetails, setTxDetails] = useState({});
+
+  const lgScreen = useMediaQuery("(min-width: 48em)");
 
   useEffect(() => {
     socketInitializer(data);
@@ -212,7 +218,7 @@ export default function Logoheader() {
 
     if (selectedPayment == "pay-now") {
       try {
-        const response = await fetch(`/api/initiateSTK`, {
+        const response = await fetch(`/api/initiateNI`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -222,19 +228,20 @@ export default function Logoheader() {
           }),
         });
 
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-
         const data = await response.json();
 
-        if (JSON.parse(data)?.ResponseCode === "0") {
+        if (response.status !== 200) {
+          throw new Error("Error occured , Retry");
+        }
+
+        if (response.status == 200) {
           setStatus("STK push sent");
           setOpenModal(true);
           return;
         }
         return;
       } catch (error) {
+        console.log(error);
         setStatus("Error occured , Retry");
         setLoadingPay(false);
         return;
@@ -247,7 +254,7 @@ export default function Logoheader() {
   return (
     <div>
       <div className="w-full fixed top-0 left-0 z-50">
-        <div className="md:flex items-center justify-between bg-white py-4 md:px-10 px-7">
+        <div className="md:flex items-center justify-between w-[90%] bg-white py-4 md:px-10 px-7">
           <div className="cursor-pointer mt-2" onClick={() => router.push(`/`)}>
             <Image height={36} priority src={logo} alt="logo" />
           </div>
@@ -274,6 +281,7 @@ export default function Logoheader() {
                 </svg>
               </Indicator>
             </div>
+
             <div className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
               <Hamburger
                 onToggle={() => {
@@ -287,7 +295,7 @@ export default function Logoheader() {
           </div>
 
           <ul
-            className={`shadow-md md:flex md:items-center md:pb-0 pb-12 absolute md:static bg-white md:z-auto z-[-1] left-0 w-full md:w-auto md:pl-0 pl-9 transition-all duration-500 ease-in ${
+            className={`shadow-md md:flex md:shadow-none md:items-center md:pb-0 pb-12 absolute md:static bg-white md:z-auto z-[-1] left-0 w-[100%] md:w-auto md:pl-0 pl-9 transition-all duration-500 ease-in ${
               menuOpen ? "top-16 " : "top-[-490px]"
             }`}
           >
@@ -306,24 +314,43 @@ export default function Logoheader() {
             </li>
 
             <li key={`categories`} className="md:ml-8 text-xl md:my-0 my-3">
-              <NavLink
-                onChange={() => setCategoriesOpen((o) => !o)}
-                label={
-                  <a
-                    href="#"
-                    className=" uppercase text-gray-800 hover:text-gray-400 duration-500"
-                  >
-                    Categories
-                  </a>
-                }
-                opened={categoriesOpen}
-                childrenOffset={28}
-              >
-                <CustomRefinementList
-                  attribute="category"
-                  sortBy={["count:desc", "name:asc"]}
-                />
-              </NavLink>
+              {!lgScreen ? (
+                <NavLink
+                  onChange={() => setCategoriesOpen((o) => !o)}
+                  label={
+                    <a
+                      href="#"
+                      className=" uppercase text-gray-800 hover:text-gray-400 duration-500"
+                    >
+                      Categories
+                    </a>
+                  }
+                  opened={categoriesOpen}
+                  childrenOffset={28}
+                >
+                  <CustomRefinementList
+                    attribute="category"
+                    sortBy={["count:desc", "name:asc"]}
+                  />
+                </NavLink>
+              ) : (
+                <Menu shadow="md" width={200}>
+                  <Menu.Target>
+                    <a
+                      href="#"
+                      className=" uppercase text-gray-800 hover:text-gray-400 text-[14px] duration-500"
+                    >
+                      Categories
+                    </a>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <CustomRefinementList
+                      attribute="category"
+                      sortBy={["count:desc", "name:asc"]}
+                    />
+                  </Menu.Dropdown>
+                </Menu>
+              )}
             </li>
 
             <li key={`saved`} className="md:ml-8 text-xl md:my-0 my-3">
@@ -348,20 +375,6 @@ export default function Logoheader() {
                     className="uppercase text-gray-800 hover:text-gray-400 duration-500"
                   >
                     Orders
-                  </a>
-                }
-                childrenOffset={28}
-              />
-            </li>
-
-            <li key={`about`} className="md:ml-8 text-xl md:my-0 my-3">
-              <NavLink
-                label={
-                  <a
-                    href="/about"
-                    className="uppercase text-gray-800 hover:text-gray-400 duration-500"
-                  >
-                    About
                   </a>
                 }
                 childrenOffset={28}
@@ -654,7 +667,9 @@ export default function Logoheader() {
               size="sm"
               uppercase
               fullWidth
-              onClick={!status ? handlePay : null}
+              onClick={
+                !status || status == "Error occured , Retry" ? handlePay : null
+              }
               loading={loadingPay}
             >
               {status ? status : "Complete Order"}

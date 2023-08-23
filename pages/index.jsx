@@ -33,7 +33,7 @@ export default function Home() {
       <Logoheader />
 
       <div className="mt-[80px] relative">
-        <div className="p-4">
+        <div className="p-4 py-2">
           <SpotlightProvider
             actions={hits}
             actionComponent={ProductSearch}
@@ -70,13 +70,13 @@ export default function Home() {
           </Carousel>
         </div> */}
 
-        <div className="mt-8 space-y-3">
+        <div className="mt-8 space-y-1">
           <div className="flex justify-between px-4 text-[0.8rem] font-medium items-baseline">
-            <h1>All products</h1>
+            <h1 className="font-medium text-[1.2rem]">All products</h1>
           </div>
 
           <div
-            className="gap-8 overflow-y-auto w-full p-4 grid grid-cols-2 max-h-[1000px]"
+            className="gap-8 overflow-y-auto w-full p-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 max-h-[1000px]"
             ref={scrollDiv}
             onScroll={fetchMore}
           >

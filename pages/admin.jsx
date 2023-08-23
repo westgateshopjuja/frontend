@@ -17,6 +17,7 @@ import {
   Radio,
   Select,
   Space,
+  Switch,
   Tabs,
   Text,
   TextInput,
@@ -51,17 +52,24 @@ import dynamic from "next/dynamic";
 import { useClient, useMutation, useQuery } from "urql";
 import { notifications } from "@mantine/notifications";
 import {
-  Highlight,
   Hits,
   InstantSearch,
   useInfiniteHits,
   useSearchBox,
 } from "react-instantsearch";
+import {
+  NovuProvider,
+  PopoverNotificationCenter,
+  NotificationBell,
+  IMessage,
+} from "@novu/notification-center";
 
 import logo from "../public/logo.svg";
 import Image from "next/image";
 import { searchClient } from "../pages/_app.js";
 import moment from "moment";
+import { Carousel } from "react-responsive-carousel";
+import { EditText, EditTextarea } from "react-edit-text";
 
 const DynamicBar = dynamic(() => import("../components/barchart"), {
   loading: () => <p>Loading...</p>,
@@ -138,7 +146,7 @@ export default function Admin() {
   if (!isLoggedIn) return <Login setAdminParent={(admin) => setAdmin(admin)} />;
 
   return (
-    <div className="space-y-8">
+    <div>
       <AdminHeader admin={admin} logOut={handleLogOut} />
       <div className="px-6">
         <Page admin={admin} />
@@ -210,7 +218,7 @@ const Login = ({ setAdminParent }) => {
 
   return (
     <div className="relative w-full h-screen bg-[#228B22]">
-      <div className="absolute p-8 rounded-sm bg-white top-[40%] w-3/4 left-[50%] translate-x-[-50%] translate-y-[-50%] space-y-4 ">
+      <div className="absolute p-8 rounded-sm bg-white top-[40%] w-3/4 left-[50%] translate-x-[-50%] translate-y-[-50%] space-y-4  md:w-[50%] lg:w-[25%]">
         <h1 className="font-bold text-[1.4rem] w-full text-center">Login</h1>
         <Divider />
         <TextInput
@@ -263,14 +271,33 @@ const Login = ({ setAdminParent }) => {
 const AdminHeader = ({ admin, logOut }) => {
   const [profileOpen, setProfileOpen] = useState(false);
 
+  function onNotificationClick(message) {
+    // your logic to handle the notification click
+    if (message?.cta?.data?.url) {
+      window.location.href = message.cta.data.url;
+    }
+  }
+
   return (
     <div className="w-full flex p-4 justify-between">
       <Image height={40} priority src={logo} alt="logo" />
-      <Avatar color="brown" size={48} onClick={() => setProfileOpen(true)}>
-        {admin?.name
-          ?.split(" ")
-          ?.map((el) => new String(el).charAt(0).toUpperCase())}{" "}
-      </Avatar>
+      <div className="flex space-x-6">
+        <NovuProvider
+          subscriberId={process.env.NEXT_PUBLIC_NOVU_SUBSCRIBER_ID}
+          applicationIdentifier={process.env.NEXT_PUBLIC_NOVU_APP_ID}
+        >
+          <PopoverNotificationCenter onNotificationClick={onNotificationClick}>
+            {({ unseenCount }) => (
+              <NotificationBell unseenCount={unseenCount} />
+            )}
+          </PopoverNotificationCenter>
+        </NovuProvider>
+        <Avatar color="brown" size={48} onClick={() => setProfileOpen(true)}>
+          {admin?.name
+            ?.split(" ")
+            ?.map((el) => new String(el).charAt(0).toUpperCase())}{" "}
+        </Avatar>
+      </div>
       <Modal
         opened={profileOpen}
         onClose={() => setProfileOpen(false)}
@@ -1551,12 +1578,51 @@ const Dashboard = () => {
       product {
         id
         name
+        description
+        category
+        images
+        variants{
+          price
+          label
+          sale{
+            startTime
+            endTime
+            salePrice
+          }
+          available
+        }
+        additionalInformation{
+          label
+          value
+        }  
+        createdAt
+        deleted
       }
     }
     slowestMoving {
       ordersPerMonth
       product {
+        id
         name
+        description
+        category
+        images
+        variants{
+          price
+          label
+          sale{
+            startTime
+            endTime
+            salePrice
+          }
+          available
+        }
+        additionalInformation{
+          label
+          value
+        }  
+        createdAt
+        deleted
       }
     }
       }
@@ -1574,7 +1640,7 @@ const Dashboard = () => {
 
   return (
     <div className="py-6 space-y-8 no-scrollbar">
-      <div className="grid-cols-1 space-y-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 md:gap-4 space-y-2 md:space-y-0">
         <Statistic
           value={`Ksh. ${data?.getStatPage?.totalSales
             .toString()
@@ -1597,48 +1663,56 @@ const Dashboard = () => {
         />
       </div>
 
-      <div>
-        <Card shadow="sm" padding="xs" radius="md" withBorder>
-          <p className="text-[0.8rem] text-gray-600">Sales Statistics</p>
-          <DynamicBar data={data?.getStatPage?.chartData} />
-        </Card>
+      <div className="md:flex md:gap-4">
+        <div className="md:w-2/3">
+          <Card shadow="sm" padding="xs" radius="md" withBorder>
+            <p className="text-[0.8rem] text-gray-600">Sales Statistics</p>
+            <DynamicBar data={data?.getStatPage?.chartData} />
+          </Card>
+        </div>
+
+        <div className="md:w-1/3">
+          <Card shadow="sm" padding="xs" radius="md" withBorder>
+            <p className="text-[0.8rem] text-gray-600">Visitors</p>
+          </Card>
+        </div>
       </div>
 
-      <div>
-        <Card shadow="sm" padding="xs" radius="md" withBorder>
-          <p className="text-[0.8rem] text-gray-600">Visitors</p>
-        </Card>
-      </div>
+      <div className="md:flex md:gap-4">
+        <div className="md:w-1/2">
+          <Card shadow="sm" padding="xs" radius="md" withBorder>
+            <p className="text-[0.8rem] text-gray-600">
+              Fastest moving products
+            </p>
+            <div className="p-4 max-h-[400px] overflow-y-auto mt-6">
+              {data?.getStatPage?.fastestMoving.map((moving, i) => (
+                <MovingProduct
+                  key={i}
+                  opm={moving?.ordersPerMonth}
+                  product={moving?.product}
+                />
+              ))}
+            </div>
+          </Card>
+        </div>
 
-      <div>
-        <Card shadow="sm" padding="xs" radius="md" withBorder>
-          <p className="text-[0.8rem] text-gray-600">Fastest moving products</p>
-          <div className="p-4 max-h-[400px] overflow-y-auto mt-6">
-            {data?.getStatPage?.fastestMoving.map((moving, i) => (
-              <MovingProduct
-                key={i}
-                opm={moving?.ordersPerMonth}
-                product={moving?.product}
-              />
-            ))}
-          </div>
-        </Card>
-      </div>
-
-      <div>
-        <Card shadow="sm" padding="xs" radius="md" withBorder>
-          <p className="text-[0.8rem] text-gray-600">Slowest moving products</p>
-          <div className="p-4 max-h-[400px] overflow-y-auto mt-6">
-            {data?.getStatPage?.slowestMoving.map((moving, i) => (
-              <MovingProduct
-                key={i}
-                opm={moving?.ordersPerMonth}
-                product={moving?.product}
-                color="red"
-              />
-            ))}
-          </div>
-        </Card>
+        <div className="md:w-1/2">
+          <Card shadow="sm" padding="xs" radius="md" withBorder>
+            <p className="text-[0.8rem] text-gray-600">
+              Slowest moving products
+            </p>
+            <div className="p-4 max-h-[400px] overflow-y-auto mt-6">
+              {data?.getStatPage?.slowestMoving.map((moving, i) => (
+                <MovingProduct
+                  key={i}
+                  opm={moving?.ordersPerMonth}
+                  product={moving?.product}
+                  color="red"
+                />
+              ))}
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );
@@ -1646,6 +1720,38 @@ const Dashboard = () => {
 
 const MovingProduct = ({ product, opm, color }) => {
   const [productModal, setProductModal] = useState(false);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [unavailable, setUnavailable] = useState(false);
+
+  const UPDATE_PRODUCT = `
+    mutation UPDATE_PRODUCT(
+        $id: ID
+        $name: String
+        $description: String,
+        $variants: String
+        $additionalInformation: String       
+        $available: Boolean
+        $sale: String
+        $deleted: Boolean
+    ){
+      updateProduct(
+        id: $id
+        name: $name
+        description: $description        
+        variants: $variants
+        additionalInformation: $additionalInformation    
+        available: $available
+        sale: $sale
+        deleted: $deleted
+      ){
+        id
+      }
+    }
+  `;
+
+  const [_, _updateProduct] = useMutation(UPDATE_PRODUCT);
 
   return (
     <div className="p-2 border-b-[1px] border-b-gray-300 flex justify-between ">
@@ -1678,7 +1784,613 @@ const MovingProduct = ({ product, opm, color }) => {
             <IconX />
           </Button>
         </div>
+        <Tabs
+          color="dark"
+          unstyled
+          styles={(theme) => ({
+            tabsList: {
+              display: "flex",
+              maxWidth: "100%",
+              overflowX: "auto",
+              scrollbarWidth: "none",
+            },
+            tabPanel: {
+              background: "yellow",
+            },
+            tab: {
+              ...theme.fn.focusStyles(),
+              padding: `${theme.spacing.xs} ${theme.spacing.md}`,
+              cursor: "pointer",
+              fontSize: theme.fontSizes.sm,
+              display: "flex",
+              alignItems: "center",
+              fontFamily: "Satoshi",
+              borderBottomColor: "light-gray",
+              borderBottomWidth: 0.5,
+              "&[data-active]": {
+                borderBottomColor: "black",
+                borderBottomWidth: 2,
+              },
+            },
+          })}
+          defaultValue="meta"
+        >
+          <Tabs.List>
+            <Tabs.Tab value="meta">Metadata</Tabs.Tab>
+            <Tabs.Tab value="sales">Sales</Tabs.Tab>
+            <Tabs.Tab value="availability">Availability</Tabs.Tab>
+            <Tabs.Tab value="removal">Removal</Tabs.Tab>
+          </Tabs.List>
+
+          <Tabs.Panel value="meta">
+            <div className="mt-[15px]">
+              <Metadata
+                data={product}
+                setModalOpen={setModalOpen}
+                _updateProduct={_updateProduct}
+              />
+            </div>
+          </Tabs.Panel>
+          <Tabs.Panel value="sales">Second panel</Tabs.Panel>
+          <Tabs.Panel value="availability">
+            <div className="mt-[15px] space-y-6">
+              <Card shadow="sm" padding="sm" radius="md" withBorder>
+                <Group position="apart" mt="md" mb="xs">
+                  <Text weight={500}>Make product unavailable</Text>
+                  <Switch
+                    color="red"
+                    checked={unavailable}
+                    onChange={(e) => setUnavailable(e.target.checked)}
+                  />
+                </Group>
+              </Card>
+
+              <Text>
+                When enabled , your shoppers can no longer shop this product
+                until you disable it.
+              </Text>
+            </div>
+          </Tabs.Panel>
+          <Tabs.Panel value="removal">
+            <div className="mt-[15px] space-y-6">
+              <Text>Type your password to remove this product</Text>
+              <PasswordInput
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Button color="red" fullWidth fw="lighter" uppercase>
+                Remove product
+              </Button>
+            </div>
+          </Tabs.Panel>
+        </Tabs>
       </Modal>
+    </div>
+  );
+};
+
+const Metadata = ({ data, _updateProduct, setModalOpen }) => {
+  const variantThumbnail = useRef();
+
+  const [variantModal, setVariantModal] = useState(false);
+  const [additonalModal, setAdditionalModal] = useState(false);
+
+  const [variants, setVariants] = useState(data?.variants);
+  const [additionals, setAdditionals] = useState(data?.additionalInformation);
+  const [product, setProduct] = useState({
+    name: data?.name,
+    description: data?.description,
+  });
+
+  const [loadingVariant, setLoadingVariant] = useState(false);
+  const [loadingAdditional, setLoadingAdditional] = useState(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
+
+  const [variant, setVariant] = useState({
+    label: "",
+    thumbnail: null,
+    price: 0,
+  });
+
+  const [additional, setAdditional] = useState({
+    label: "",
+    value: null,
+  });
+
+  const handleRemoveVariant = (index) => {
+    setVariants((variants) => {
+      let filter = variants.filter((_, i) => i !== index);
+      return [...filter];
+    });
+  };
+
+  const handleRemoveAdditional = (index) => {
+    setAdditionals((additional) => {
+      let filter = additional.filter((_, i) => i !== index);
+      return [...filter];
+    });
+  };
+
+  const saveVariant = () => {
+    setLoadingVariant(true);
+    let isValid = (variant?.label || variant?.thumbnail) && variant?.price;
+
+    if (isValid) {
+      setVariants((variants) => {
+        if (variants.some((e) => e.label === variant?.label)) {
+          alert("Variant alredy exists");
+          return;
+        }
+        return [...variants, variant];
+      });
+      setLoadingVariant(false);
+    }
+
+    if (!isValid) {
+      alert("Missing variant label or price ");
+      setLoadingVariant(false);
+      return;
+    }
+    setVariantModal(false);
+    setVariant(() => {
+      return {
+        label: "",
+        thumbnail: null,
+        price: 0,
+      };
+    });
+  };
+
+  const saveAdditional = () => {
+    setLoadingAdditional(true);
+    let isValid = additional?.label && additional?.value;
+
+    if (isValid) {
+      setAdditionals((additionals) => {
+        if (additionals.some((e) => e.label === additional?.label)) {
+          alert("Label already exists");
+          return;
+        }
+        return [...additionals, additional];
+      });
+      setLoadingAdditional(false);
+    }
+
+    if (!isValid) {
+      alert("Missing label or value ");
+      setLoadingAdditional(false);
+      return;
+    }
+    setAdditionalModal(false);
+    setAdditional(() => {
+      return {
+        label: "",
+        value: null,
+      };
+    });
+  };
+
+  const getBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      let base64;
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        base64 = reader.result;
+        resolve(base64);
+      };
+      reader.onerror = () => {
+        reject(null);
+      };
+    });
+  };
+
+  const updateProduct = async () => {
+    setUpdateLoading(true);
+
+    let _variants_ = [];
+
+    for (let _variant of variants) {
+      if (_variant?.thumbnail) {
+        let i_b64 = await getBase64(_variant?.thumbnail);
+        let _v = {
+          thumbnail: i_b64,
+          label: _variant?.label,
+          price: _variant?.price,
+        };
+        _variants_.push(_v);
+      } else {
+        let _v = {
+          thumbnail: null,
+          label: _variant?.label,
+          sale: _variant?.sale,
+          available: _variant?.available,
+          price: _variant?.price,
+        };
+        _variants_.push(_v);
+      }
+    }
+
+    let _product = {
+      id: data?.id,
+      name: product?.name,
+      description: product?.description,
+      variants: JSON.stringify(_variants_),
+      additionalInformation: JSON.stringify(additionals),
+    };
+
+    console.log(_product);
+
+    _updateProduct({
+      ..._product,
+    })
+      .then((data, error) => {
+        if (data?.data?.updateProduct && !error) {
+          notifications.show({
+            title: "Product updated successfully",
+            icon: <IconCheck />,
+            color: "green",
+            message:
+              "Your customers can now shop this product with updated content",
+          });
+          handleCloseModal();
+        } else {
+          console.log(error);
+          notifications.show({
+            title: "Error",
+            icon: <IconExclamationMark />,
+            color: "red",
+            message: "Something occured. We couldn't update this product",
+          });
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setUpdateLoading(false);
+      });
+  };
+
+  const handleCloseModal = () => {
+    setProduct({
+      name: "",
+      description: "",
+    });
+
+    setAdditional({
+      label: "",
+      value: null,
+    });
+    setVariant({
+      label: "",
+      thumbnail: null,
+      price: 0,
+    });
+
+    setModalOpen(false);
+  };
+
+  return (
+    <div>
+      <div>
+        <Carousel
+          infiniteLoop
+          showIndicators={false}
+          showThumbs={false}
+          showStatus={false}
+          autoPlay
+        >
+          {data?.images.map((image, i) => (
+            <div key={i}>
+              <img className="w-full h-[200px] object-contain" src={image} />
+            </div>
+          ))}
+        </Carousel>
+      </div>
+
+      <div className="space-y-4">
+        <Space h={30} />
+        <Divider size={10} label="Basic Information" labelPosition="center" />
+        <div>
+          <label className="font-medium">Name</label>
+          <EditText
+            style={{ border: "1px solid green" }}
+            value={product?.name}
+            onChange={(e) =>
+              setProduct((product) => {
+                return {
+                  ...product,
+                  name: e.target.value,
+                };
+              })
+            }
+          />
+        </div>
+        <div>
+          <label className="font-medium">Description</label>
+          <EditTextarea
+            style={{ border: "1px solid green" }}
+            value={product?.description}
+            onChange={(e) =>
+              setProduct((product) => {
+                return {
+                  ...product,
+                  description: e.target.value,
+                };
+              })
+            }
+          />
+        </div>
+
+        <label className="font-medium block">Category</label>
+        <Badge>{data?.category}</Badge>
+      </div>
+
+      <div>
+        <Space h={50} />
+        <Divider size={10} label="Variants & Price" labelPosition="center" />
+        <Space h={20} />
+        <div>
+          {variants?.length > 0 ? (
+            <div className="space-y-4">
+              {variants?.map((variant, i) => (
+                <Variant
+                  key={i}
+                  variant={variant}
+                  onRemove={() => handleRemoveVariant(i)}
+                  updateVariantInfo={(sale) => {
+                    console.log(sale);
+                    setVariants((prevVariants) =>
+                      prevVariants.map((variant, index) =>
+                        index === i ? { ...variant, sale } : variant
+                      )
+                    );
+                  }}
+                  updateAvailable={(val) =>
+                    setVariants((prevVariants) =>
+                      prevVariants.map((variant, index) =>
+                        index === i ? { ...variant, available: val } : variant
+                      )
+                    )
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-gray-100 p-4 border-t-2 border-[#228B22]">
+              <Text>No variant added yet.</Text>
+            </div>
+          )}
+
+          <Button
+            onClick={() => setVariantModal(true)}
+            mt={24}
+            fullWidth
+            size="xs"
+            color="dark"
+            variant="outline"
+          >
+            <IconPlus size={12} style={{ marginRight: 12 }} /> Add variant
+          </Button>
+        </div>
+
+        <Modal
+          opened={variantModal}
+          onClose={() => {
+            setVariantModal(false);
+            setVariant(() => {
+              return {
+                label: "",
+                thumbnail: null,
+                price: 0,
+              };
+            });
+          }}
+          title={
+            <h1 className="py-6 px-3 font-bold text-[1.5rem]">Add variant</h1>
+          }
+          centered
+          transitionProps={{ transition: "fade", duration: 200 }}
+        >
+          <div className="p-8 space-y-8">
+            <img src="/variant.png" className="mx-auto" />
+            <input
+              type="file"
+              ref={variantThumbnail}
+              className="hidden"
+              onChange={(e) => {
+                setVariant((variant) => {
+                  return {
+                    ...variant,
+                    thumbnail: e.target.files[0],
+                  };
+                });
+              }}
+            />
+            {variant?.thumbnail && (
+              <div className="p-8 relative w-[90%]">
+                <img
+                  src={URL.createObjectURL(variant?.thumbnail)}
+                  alt="product"
+                  className="aspect-auto"
+                />
+                <button
+                  onClick={() =>
+                    setVariant((variant) => {
+                      return {
+                        ...variant,
+                        thumbnail: null,
+                      };
+                    })
+                  }
+                  className="absolute top-0 right-0 h-[40px] w-[40px] bg-red-800 rounded-full text-white m-0 p-0"
+                >
+                  <IconX className="mx-auto" />
+                </button>
+              </div>
+            )}
+            <Button
+              fw="lighter"
+              uppercase
+              color="dark"
+              variant="outline"
+              fullWidth
+              size="xs"
+              onClick={() => variantThumbnail.current.click()}
+            >
+              <IconPlus size={12} style={{ marginRight: 12 }} /> Upload
+              thumbnail
+            </Button>
+            <TextInput
+              placeholder="ex. L ,S"
+              label="Variant label"
+              value={variant?.label}
+              onChange={(e) => {
+                setVariant((variant) => {
+                  return {
+                    ...variant,
+                    label: e.target.value,
+                  };
+                });
+              }}
+            />
+            <NumberInput
+              label="Variant price"
+              defaultValue={0}
+              parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+              value={variant?.price}
+              onChange={(val) => {
+                setVariant((variant) => {
+                  return {
+                    ...variant,
+                    price: val,
+                  };
+                });
+              }}
+            />
+            <Button
+              fw="lighter"
+              uppercase
+              color="dark"
+              fullWidth
+              onClick={saveVariant}
+              loading={loadingVariant}
+            >
+              save variant
+            </Button>
+          </div>
+        </Modal>
+      </div>
+
+      <div>
+        <Space h={50} />
+        <Divider
+          size={10}
+          label="Additional Information"
+          labelPosition="center"
+        />
+        <Space h={20} />
+        <div>
+          {additionals?.length > 0 ? (
+            <div className="space-y-4">
+              {additionals?.map((additional, i) => (
+                <Additional
+                  key={i}
+                  additional={additional}
+                  onRemove={() => handleRemoveAdditional(i)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-gray-100 p-4 border-t-2 border-[#228B22]">
+              <Text>No additional information added yet.</Text>
+            </div>
+          )}
+
+          <Button
+            onClick={() => setAdditionalModal(true)}
+            mt={24}
+            fullWidth
+            size="xs"
+            color="dark"
+            variant="outline"
+          >
+            <IconPlus size={12} style={{ marginRight: 12 }} /> Add more info
+          </Button>
+        </div>
+
+        <Modal
+          opened={additonalModal}
+          onClose={() => {
+            setAdditionalModal(false);
+            setAdditional(() => {
+              return {
+                label: "",
+                value: null,
+              };
+            });
+          }}
+          title={
+            <h1 className="py-6 px-3 font-bold text-[1.5rem]">
+              Add more information
+            </h1>
+          }
+          centered
+          transitionProps={{ transition: "fade", duration: 200 }}
+        >
+          <div className="p-8 space-y-8">
+            <TextInput
+              placeholder="ex. Weight , warranty"
+              label="Label"
+              value={additional?.label}
+              onChange={(e) => {
+                setAdditional((additional) => {
+                  return {
+                    ...additional,
+                    label: e.target.value,
+                  };
+                });
+              }}
+            />
+            <TextInput
+              placeholder="ex. 0.3kg , 2 years"
+              label="Value"
+              value={additional?.value}
+              onChange={(e) => {
+                setAdditional((additional) => {
+                  return {
+                    ...additional,
+                    value: e.target.value,
+                  };
+                });
+              }}
+            />
+
+            <Button
+              fw="lighter"
+              uppercase
+              color="dark"
+              fullWidth
+              onClick={saveAdditional}
+              loading={loadingAdditional}
+            >
+              save additional information
+            </Button>
+          </div>
+        </Modal>
+      </div>
+      <Space h={50} />
+      <Button
+        fw="lighter"
+        uppercase
+        color="dark"
+        fullWidth
+        onClick={updateProduct}
+        loading={updateLoading}
+      >
+        update product
+      </Button>
     </div>
   );
 };
@@ -1814,7 +2526,7 @@ const Orders = () => {
           style={{ width: "90%" }}
         />
       </Group>
-      <div className="flex max-w-full overflow-x-auto gap-6">
+      <div className="flex max-w-full overflow-x-auto gap-6 md:grid md:grid-cols-3">
         <Statistic
           value={getInProcessing()}
           label={"In processing"}
@@ -1858,25 +2570,27 @@ const Orders = () => {
 
 const Statistic = ({ value, label, icon, color }) => {
   return (
-    <Card
-      shadow="sm"
-      padding="xs"
-      radius="md"
-      withBorder
-      style={{ minWidth: 200 }}
-    >
-      <div className="flex space-x-4">
-        {icon && (
-          <ActionIcon color={color} variant="light" size={58}>
-            {icon}
-          </ActionIcon>
-        )}
-        <div>
-          <h1 className="font-bold text-[1.5rem]">{value}</h1>
-          <p className="font-light text-[0.8rem] text-gray-700">{label}</p>
+    <div className="col-span-1">
+      <Card
+        shadow="sm"
+        padding="xs"
+        radius="md"
+        withBorder
+        style={{ minWidth: 200 }}
+      >
+        <div className="flex space-x-4">
+          {icon && (
+            <ActionIcon color={color} variant="light" size={58}>
+              {icon}
+            </ActionIcon>
+          )}
+          <div>
+            <h1 className="font-bold text-[1.5rem]">{value}</h1>
+            <p className="font-light text-[0.8rem] text-gray-700">{label}</p>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </div>
   );
 };
 
@@ -1901,7 +2615,7 @@ const Transactions = () => {
         <Card shadow="sm" padding="xs" radius="md" withBorder>
           <Group position="apart" mt="md" mb="xs">
             <Badge color="green" variant="light" size="lg">
-              {query ? <Highlight attribute="code" hit={hit} /> : hit?.code}
+              {hit?.code}
             </Badge>
             <Text fw="lighter">
               {hit?.createdAt
@@ -1920,14 +2634,7 @@ const Transactions = () => {
             </Text>
           </Group>
           <div className="flex justify-between">
-            <Text fw="lighter">
-              +
-              {query ? (
-                <Highlight attribute="phoneNumber" hit={hit} />
-              ) : (
-                formatPhoneNumber(hit?.phoneNumber)
-              )}
-            </Text>
+            <Text fw="lighter">+{formatPhoneNumber(hit?.phoneNumber)}</Text>
             <Text weight={700} color="green" fz={"lg"}>
               + Ksh.{" "}
               {hit?.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
