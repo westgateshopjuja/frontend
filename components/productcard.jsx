@@ -1,17 +1,39 @@
-import { Badge, Text, UnstyledButton } from "@mantine/core";
+import { Badge, Loader, Text, UnstyledButton } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconBookmark, IconStar } from "@tabler/icons";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { useMutation } from "urql";
 import { Userdatacontext } from "../context/userdata";
 import { Carousel } from "react-responsive-carousel";
+import { isAfter, isBefore } from "date-fns";
+
+export const isOnSale = (variant) => {
+  if (variant?.sale?.startTime && variant?.sale?.endTime) {
+    const currentTime = Date.now();
+    const startTimestamp = parseInt(variant?.sale?.startTime);
+    const endTimestamp = parseInt(variant?.sale?.endTime);
+    if (
+      isAfter(currentTime, startTimestamp) &&
+      isBefore(currentTime, endTimestamp)
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  return false;
+};
 
 export default function ProductCard({ hit }) {
+  const [loading, setLoading] = useState(false);
+
   const getPriceLabel = () => {
     if (hit) {
-      const prices = hit?.variants.map((obj) => obj.price);
+      const prices = hit?.variants.map((obj) =>
+        isOnSale(obj) ? obj?.sale?.salePrice : obj?.price
+      );
       const allSame = prices.every((price) => price === prices[0]);
 
       return prices.length == 1
@@ -71,6 +93,7 @@ export default function ProductCard({ hit }) {
       signIn();
       return;
     }
+    setLoading(true);
     _saveUnsave({
       product: hit?.id,
       customer: session.user.email,
@@ -83,6 +106,9 @@ export default function ProductCard({ hit }) {
           color: "red",
           title: "An error occured",
         });
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -101,26 +127,30 @@ export default function ProductCard({ hit }) {
           }}
           onClick={handleSave}
         >
-          <svg
-            className="ml-[8px]"
-            xmlns="http://www.w3.org/2000/svg"
-            class="icon icon-tabler icon-tabler-heart-filled"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="#2c3e50"
-            fill="none"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-            <path
-              d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z"
-              stroke-width="0"
-              fill="red"
-            />
-          </svg>
+          {loading ? (
+            <Loader color="red" size={20} />
+          ) : (
+            <svg
+              className="ml-[8px]"
+              xmlns="http://www.w3.org/2000/svg"
+              class="icon icon-tabler icon-tabler-heart-filled"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="#2c3e50"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path
+                d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z"
+                stroke-width="0"
+                fill="red"
+              />
+            </svg>
+          )}
         </UnstyledButton>
       ) : (
         <UnstyledButton
@@ -135,22 +165,26 @@ export default function ProductCard({ hit }) {
           }}
           onClick={handleSave}
         >
-          <svg
-            className="ml-[8px]"
-            xmlns="http://www.w3.org/2000/svg"
-            class="icon icon-tabler icon-tabler-heart"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="#2c3e50"
-            fill="none"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-            <path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" />
-          </svg>
+          {loading ? (
+            <Loader color="red" size={20} />
+          ) : (
+            <svg
+              className="ml-[8px]"
+              xmlns="http://www.w3.org/2000/svg"
+              class="icon icon-tabler icon-tabler-heart"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="#2c3e50"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" />
+            </svg>
+          )}
         </UnstyledButton>
       )}
 

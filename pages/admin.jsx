@@ -18,6 +18,7 @@ import {
   Select,
   Space,
   Switch,
+  Table,
   Tabs,
   Text,
   TextInput,
@@ -40,10 +41,11 @@ import {
   IconWallet,
   IconX,
 } from "@tabler/icons";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import {
   Additional,
   AdminCard,
+  Loader,
   OrderAdmin,
   ProductCardAdmin,
   Variant,
@@ -51,6 +53,7 @@ import {
 import dynamic from "next/dynamic";
 import { useClient, useMutation, useQuery } from "urql";
 import { notifications } from "@mantine/notifications";
+
 import {
   Hits,
   InstantSearch,
@@ -61,7 +64,6 @@ import {
   NovuProvider,
   PopoverNotificationCenter,
   NotificationBell,
-  IMessage,
 } from "@novu/notification-center";
 
 import logo from "../public/logo.svg";
@@ -70,6 +72,9 @@ import { searchClient } from "../pages/_app.js";
 import moment from "moment";
 import { Carousel } from "react-responsive-carousel";
 import { EditText, EditTextarea } from "react-edit-text";
+import { isOnSale } from "../components/productcard";
+
+import { useRouter } from "next/router";
 
 const DynamicBar = dynamic(() => import("../components/barchart"), {
   loading: () => <p>Loading...</p>,
@@ -100,19 +105,10 @@ const GET_ADMIN = `
 export default function Admin() {
   const [admin, setAdmin] = useState({});
   const [loading, setLoading] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const graphqlClient = useClient();
 
-  useEffect(() => {
-    if (Object.keys(admin).length > 0) {
-      setIsLoggedIn(true);
-    } else {
-      setIsLoggedIn(false);
-    }
-  }, [admin]);
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     setLoading(true);
     if (typeof window !== "undefined") {
       let id = localStorage?.getItem("admin_key");
@@ -124,16 +120,19 @@ export default function Admin() {
           .toPromise()
           .then(({ data, error }) => {
             if (data && !error) {
-              setLoading(false);
               setAdmin(data?.getAdmin);
             } else {
               console.log(data, error, id);
               localStorage.clear();
             }
+          })
+          .then(() => {
+            setLoading(false);
           });
       } else {
+        setLoading(false);
         console.log("Not logged in");
-        setIsLoggedIn(false);
+        localStorage.clear();
       }
     }
   }, []);
@@ -143,7 +142,15 @@ export default function Admin() {
     setAdmin({});
   };
 
-  if (!isLoggedIn) return <Login setAdminParent={(admin) => setAdmin(admin)} />;
+  if (loading)
+    return (
+      <div className="bg-[#228B22] w-full h-screen">
+        <Loader />
+      </div>
+    );
+
+  if (!Object.keys(admin).length > 0 && !loading)
+    return <Login setAdminParent={(admin) => setAdmin(admin)} />;
 
   return (
     <div>
@@ -219,7 +226,10 @@ const Login = ({ setAdminParent }) => {
   return (
     <div className="relative w-full h-screen bg-[#228B22]">
       <div className="absolute p-8 rounded-sm bg-white top-[40%] w-3/4 left-[50%] translate-x-[-50%] translate-y-[-50%] space-y-4  md:w-[50%] lg:w-[25%]">
-        <h1 className="font-bold text-[1.4rem] w-full text-center">Login</h1>
+        <Image height={40} priority src={logo} alt="logo" className="mx-auto" />
+        <h1 className="font-bold text-[1.4rem] w-full text-center">
+          Admin Login
+        </h1>
         <Divider />
         <TextInput
           withAsterisk
@@ -401,7 +411,7 @@ const Page = ({ admin }) => {
 
       <Tabs.Panel value="dashboard" pl="xs">
         <div className="max-h-[calc(100vh-170px)] mt-[15px] overflow-y-auto">
-          <Dashboard />
+          <Dashboard admin={admin} />
         </div>
       </Tabs.Panel>
 
@@ -413,7 +423,7 @@ const Page = ({ admin }) => {
 
       <Tabs.Panel value="orders" pl="xs">
         <div className="max-h-[calc(100vh-170px)] mt-[15px] overflow-y-auto">
-          <Orders />
+          <Orders admin={admin} />
         </div>
       </Tabs.Panel>
 
@@ -426,7 +436,7 @@ const Page = ({ admin }) => {
       <Tabs.Panel value="transactions" pl="xs">
         <div className="max-h-[calc(100vh-170px)] mt-[15px] overflow-y-auto">
           <InstantSearch searchClient={searchClient} indexName="transactions">
-            <Transactions />
+            <Transactions admin={admin} />
           </InstantSearch>
         </div>
       </Tabs.Panel>
@@ -456,17 +466,15 @@ const ProductList = () => {
   };
 
   return (
-    <>
-      <div
-        className="w-full space-y-6 max-h-[1000px]"
-        ref={scrollDiv}
-        onScroll={fetchMore}
-      >
-        {hits.map((hit, i) => (
-          <ProductCardAdmin key={i} hit={hit} />
-        ))}
-      </div>
-    </>
+    <div
+      className="w-full space-y-6 max-h-[1000px]"
+      ref={scrollDiv}
+      onScroll={fetchMore}
+    >
+      {hits.map((hit, i) => (
+        <ProductCardAdmin key={i} hit={hit} />
+      ))}
+    </div>
   );
 };
 
@@ -1562,7 +1570,7 @@ const Admins = ({ _admin }) => {
   );
 };
 
-const Dashboard = () => {
+const Dashboard = ({ admin }) => {
   const GET_STAT_PAGE = `
     query GET_STAT_PAGE{
       getStatPage{
@@ -1690,6 +1698,7 @@ const Dashboard = () => {
                   key={i}
                   opm={moving?.ordersPerMonth}
                   product={moving?.product}
+                  admin={admin}
                 />
               ))}
             </div>
@@ -1708,6 +1717,7 @@ const Dashboard = () => {
                   opm={moving?.ordersPerMonth}
                   product={moving?.product}
                   color="red"
+                  admin={admin}
                 />
               ))}
             </div>
@@ -1718,12 +1728,13 @@ const Dashboard = () => {
   );
 };
 
-const MovingProduct = ({ product, opm, color }) => {
+const MovingProduct = ({ product, opm, color, admin }) => {
   const [productModal, setProductModal] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [unavailable, setUnavailable] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   const UPDATE_PRODUCT = `
     mutation UPDATE_PRODUCT(
@@ -1753,11 +1764,81 @@ const MovingProduct = ({ product, opm, color }) => {
 
   const [_, _updateProduct] = useMutation(UPDATE_PRODUCT);
 
+  const removeProduct = () => {
+    setLoadingDelete(true);
+    if (password !== admin?.password) {
+      notifications.show({
+        color: "red",
+        title: "Incorrect password",
+      });
+      return;
+    }
+
+    _updateProduct({
+      id: product?.id,
+      deleted: true,
+    }).then((data, error) => {
+      if (data?.data?.updateProduct && !error) {
+        notifications.show({
+          title: "Product deleted",
+          icon: <IconCheck />,
+          color: "green",
+          message:
+            "Your customers can no longer shop this product and all its variants",
+        });
+        setLoadingDelete(false);
+        setProductModal(false);
+      } else {
+        notifications.show({
+          title: "Error",
+          icon: <IconExclamationMark />,
+          color: "red",
+          message:
+            "Something occured. We couldn't delete this product at the moment",
+        });
+        setLoadingDelete(false);
+      }
+    });
+  };
+
+  const calculatePercentageDifference = (price, salePrice) => {
+    return ((price - salePrice) / price) * 100;
+  };
+
+  const findLargestPercentageDifference = () => {
+    let largestDifference = 0;
+
+    product?.variants.forEach((variant) => {
+      const { price, sale } = variant;
+
+      if (isOnSale(variant)) {
+        const percentageDifference = calculatePercentageDifference(
+          price,
+          sale?.salePrice
+        );
+
+        if (percentageDifference > largestDifference) {
+          largestDifference = percentageDifference;
+        }
+      }
+    });
+
+    return largestDifference;
+  };
+
   return (
-    <div className="p-2 border-b-[1px] border-b-gray-300 flex justify-between ">
+    <div className="p-2 border-b-[1px] border-b-gray-300 flex justify-between relative">
       <div>
         <Text lineClamp={1}>{product?.name}</Text>
-        <Badge color={color}>{opm} orders per month</Badge>
+        <span className="flex space-x-2">
+          <Badge color={color}>{opm} orders per month</Badge>
+          {product?.deleted && <Badge color="red">Deleted</Badge>}
+          {findLargestPercentageDifference() != 0 && (
+            <Badge color="orange">
+              On sale , -{findLargestPercentageDifference().toFixed(0)}%
+            </Badge>
+          )}
+        </span>
       </div>
       <Button
         onClick={() => setProductModal(true)}
@@ -1817,8 +1898,6 @@ const MovingProduct = ({ product, opm, color }) => {
         >
           <Tabs.List>
             <Tabs.Tab value="meta">Metadata</Tabs.Tab>
-            <Tabs.Tab value="sales">Sales</Tabs.Tab>
-            <Tabs.Tab value="availability">Availability</Tabs.Tab>
             <Tabs.Tab value="removal">Removal</Tabs.Tab>
           </Tabs.List>
 
@@ -1858,7 +1937,14 @@ const MovingProduct = ({ product, opm, color }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <Button color="red" fullWidth fw="lighter" uppercase>
+              <Button
+                loading={loadingDelete}
+                color="red"
+                fullWidth
+                fw="lighter"
+                uppercase
+                onClick={removeProduct}
+              >
                 Remove product
               </Button>
             </div>
@@ -2081,7 +2167,7 @@ const Metadata = ({ data, _updateProduct, setModalOpen }) => {
           showStatus={false}
           autoPlay
         >
-          {data?.images.map((image, i) => (
+          {data?.images?.map((image, i) => (
             <div key={i}>
               <img className="w-full h-[200px] object-contain" src={image} />
             </div>

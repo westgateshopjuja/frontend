@@ -42,6 +42,7 @@ import logo from "../public/logo.svg";
 import Image from "next/image";
 import CustomRefinementList from "./refinementlist";
 import Error from "next/error";
+import { isOnSale } from "./productcard";
 
 let socket;
 
@@ -189,9 +190,17 @@ export default function Logoheader() {
     data?.cart.forEach((order) => {
       sum =
         sum +
-        order?.product.variants.filter(
-          (variant) => variant?.label == order?.variant
-        )[0].price *
+        (isOnSale(
+          order?.product.variants.filter(
+            (variant) => variant?.label == order?.variant
+          )[0]
+        )
+          ? order?.product.variants.filter(
+              (variant) => variant?.label == order?.variant
+            )[0].sale?.salePrice
+          : order?.product.variants.filter(
+              (variant) => variant?.label == order?.variant
+            )[0].price) *
           order?.quantity;
     });
 
@@ -463,7 +472,7 @@ export default function Logoheader() {
         <div>
           <div className="sticky top-0 bg-white z-40">
             <div className="p-3 relative">
-              <IconChevronLeft
+              <IconChevronRight
                 onClick={() => setCartOpen(false)}
                 className="absolute mt-[6px]"
               />
@@ -501,7 +510,7 @@ export default function Logoheader() {
                   <div>
                     <p className="font-medium">Shipping</p>
                     <span className="text-[0.8rem] text-[#909090] font-light">
-                      Based on your default address
+                      Flat rate for deliveries in Juja vicinity
                     </span>
                   </div>
                   <p className="text-[#228B22]">
@@ -573,7 +582,7 @@ export default function Logoheader() {
         <div>
           <div className="sticky top-0 bg-white z-40">
             <div className="p-3 relative">
-              <IconChevronLeft
+              <IconChevronRight
                 onClick={() => setCheckoutOpen(false)}
                 className="absolute mt-[6px]"
               />

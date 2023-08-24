@@ -11,6 +11,7 @@ import {
 import { DatePickerInput } from "@mantine/dates";
 import { IconX } from "@tabler/icons";
 import { useEffect, useState } from "react";
+import { isOnSale } from "./productcard";
 
 export default function Variant({
   variant,
@@ -75,18 +76,20 @@ export default function Variant({
         <div className="flex justify-between w-full">
           <div className="w-full px-4  ">
             <Text>{variant?.label}</Text>
+            <div>
+              <p
+                className={
+                  isOnSale(variant)
+                    ? "line-through text-red-700 font-medium inline mt-5"
+                    : "text-[#228B22] font-medium "
+                }
+              >
+                Ksh. {variant?.price}
+              </p>
+            </div>
 
-            <p
-              className={
-                variant?.sale?.endTime
-                  ? "line-through text-red-700 text-[0.9rem] inline"
-                  : "text-[#228B22] text-[0.9rem]"
-              }
-            >
-              Ksh. {variant?.price}
-            </p>
-            {variant?.sale?.endTime && (
-              <p className="text-[#228B22] text-[0.9rem] inline ml-2">
+            {isOnSale(variant) && (
+              <p className="text-[#228B22] font-medium  inline ">
                 Ksh. {variant?.sale?.salePrice}
               </p>
             )}

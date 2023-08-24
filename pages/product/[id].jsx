@@ -8,6 +8,7 @@ import {
   Drawer,
   Group,
   Radio,
+  Skeleton,
   Space,
   Stack,
   Text,
@@ -26,6 +27,28 @@ import { Userdatacontext } from "../../context/userdata";
 import { signIn, useSession } from "next-auth/react";
 import { Configure, InstantSearch, useHits } from "react-instantsearch";
 import { searchClient } from "../_app";
+import { isOnSale } from "../../components/productcard";
+
+const LoadingComponent = () => (
+  <div>
+    <Logoheader />
+    <div className="mt-[80px] relative md:flex">
+      <div className="space-y-4">
+        <Skeleton height={430} mb="xl" />
+        <div className="p-4 space-y-4">
+          <Skeleton height={80} width={80} mb="xl" />
+          <Skeleton height={18} width="40%" />
+          <Skeleton height={32} mt={6} radius="md" width="80%" />
+          <Skeleton height={24} mt={6} width="30%" />
+          <Skeleton height={50} mt={6} width="100%" />
+          <br />
+          <Skeleton height={24} mt={6} width="100%" />
+          <Skeleton height={16} mt={6} width="20%" radius="md" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 export default function Product() {
   const router = useRouter();
@@ -99,7 +122,7 @@ export default function Product() {
   const [loading, setLoading] = useState(false);
   const [variant, setVariant] = useState();
 
-  if (fetching) return <p>Fetching ...</p>;
+  if (fetching) return <LoadingComponent />;
   if (error) return <p>Error...</p>;
 
   let product = data?.getProduct;
@@ -107,7 +130,9 @@ export default function Product() {
 
   const getPriceLabel = () => {
     if (product) {
-      const prices = product?.variants.map((obj) => obj.price);
+      const prices = product?.variants.map((obj) =>
+        isOnSale(obj) ? obj?.sale?.salePrice : obj?.price
+      );
       const allSame = prices.every((price) => price === prices[0]);
 
       return prices.length == 1
@@ -258,11 +283,6 @@ export default function Product() {
             </Text>
 
             <div className="flex space-x-2">
-              {product?.was && (
-                <p className="text-red-600 line-through text-[0.9rem]">
-                  Ksh. {product?.was}
-                </p>
-              )}
               <p className="text-[#228B22] text-[0.9rem] font-bold">
                 {getPriceLabel()}
               </p>
@@ -345,7 +365,7 @@ export default function Product() {
                           <div className="mt-5">
                             <p
                               className={
-                                variant?.sale?.endTime
+                                isOnSale(variant)
                                   ? "line-through text-red-700 font-medium inline mt-5"
                                   : "text-[#228B22] font-medium mt-5"
                               }
@@ -354,7 +374,7 @@ export default function Product() {
                             </p>
                           </div>
 
-                          {variant?.sale?.endTime && (
+                          {isOnSale(variant) && (
                             <p className="text-[#228B22] font-medium  inline ">
                               Ksh. {variant?.sale?.salePrice}
                             </p>

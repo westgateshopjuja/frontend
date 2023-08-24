@@ -23,6 +23,12 @@ export default function UserData({ children }) {
                     thumbnail
                     price
                     label
+                    sale {
+                      salePrice
+                      startTime
+                      endTime
+                    }
+                    available
                 }
               }
               quantity
@@ -36,6 +42,12 @@ export default function UserData({ children }) {
                 thumbnail
                 price
                 label
+                sale {
+                  salePrice
+                  startTime
+                  endTime
+                }
+                available
               }
             }
             addresses {

@@ -13,6 +13,7 @@ import AdminCard from "./admincard";
 import BarChart from "./barchart";
 import OrderAdmin from "./orderadmin";
 import Editable from "./editable";
+import Loader from "./loader";
 export {
   Footer,
   Logoheader,
@@ -29,4 +30,5 @@ export {
   BarChart,
   OrderAdmin,
   Editable,
+  Loader,
 };

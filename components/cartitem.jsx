@@ -3,12 +3,11 @@ import { IconX } from "@tabler/icons";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useMutation } from "urql";
+import { isOnSale } from "./productcard";
 
 export default function CartItem({ order, noControls }) {
   const { data: session } = useSession();
   const router = useRouter();
-
-  console.log(order);
 
   const UPDATE_CART = `
     mutation UPDATE_CART(
@@ -72,18 +71,22 @@ export default function CartItem({ order, noControls }) {
           {order?.product?.name}
         </Text>
         <div className="flex space-x-3">
-          {order?.was && !noControls && (
-            <p className="text-red-600 line-through text-[0.9rem]">
-              Ksh. {order?.was}
-            </p>
-          )}
           <p className="text-[#228B22] text-[0.9rem]">
             Ksh.{" "}
             {!noControls
-              ? order?.product.variants
-                  .filter((variant) => variant?.label == order?.variant)[0]
-                  .price.toString()
-                  .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              ? isOnSale(
+                  order?.product.variants.filter(
+                    (variant) => variant?.label == order?.variant
+                  )[0]
+                )
+                ? order?.product.variants
+                    .filter((variant) => variant?.label == order?.variant)[0]
+                    .sale?.salePrice?.toString()
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                : order?.product.variants
+                    .filter((variant) => variant?.label == order?.variant)[0]
+                    .price.toString()
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               : order?.salePrice
                   .toString()
                   .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}

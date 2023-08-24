@@ -1,4 +1,4 @@
-import { Chip, Select, Text } from "@mantine/core";
+import { Chip, Select, Skeleton, Text } from "@mantine/core";
 import { IconSearch } from "@tabler/icons";
 
 import { SpotlightProvider, spotlight } from "@mantine/spotlight";
@@ -80,6 +80,8 @@ export default function Home() {
             ref={scrollDiv}
             onScroll={fetchMore}
           >
+            {hits.length == 0 &&
+              [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((el) => <LoadingComponent />)}
             {hits.map((_hit, i) => (
               <ProductCard key={i} hit={_hit} />
             ))}
@@ -90,3 +92,12 @@ export default function Home() {
     </div>
   );
 }
+
+const LoadingComponent = () => (
+  <div className="col-span-1 space-y-2 min-w-[40vw] md:min-w-[23vw] lg:min-w-[18vw]">
+    <Skeleton height={200} mb="xl" />
+    <Skeleton height={14} radius="md" />
+    <Skeleton height={24} mt={6} radius="md" />
+    <Skeleton height={16} mt={6} width="70%" radius="md" />
+  </div>
+);

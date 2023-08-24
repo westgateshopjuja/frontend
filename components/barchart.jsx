@@ -15,7 +15,7 @@ export default function BarChart({ data }) {
   };
 
   useEffect(() => {
-    const colors = ["#A18A68"];
+    const colors = ["#228B22"];
     const barOptions = {
       color: colors,
       tooltip: {
@@ -71,7 +71,7 @@ export default function BarChart({ data }) {
               barBorderRadius: [50, 50, 50, 50],
             },
           },
-          barWidth: "40%",
+          barWidth: "20%",
 
           data: data?.map(({ value }) => value),
         },

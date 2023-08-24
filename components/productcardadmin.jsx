@@ -31,11 +31,11 @@ import { EditText, EditTextarea } from "react-edit-text";
 import "react-edit-text/dist/index.css";
 import { useMutation } from "urql";
 import { notifications } from "@mantine/notifications";
+import { isOnSale } from "./productcard";
 
 export default function ProductCardAdmin({ hit }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [password, setPassword] = useState("");
-  const [unavailable, setUnavailable] = useState(false);
 
   const UPDATE_PRODUCT = `
     mutation UPDATE_PRODUCT(
@@ -62,12 +62,62 @@ export default function ProductCardAdmin({ hit }) {
       }
     }
   `;
+  const getPriceLabel = () => {
+    if (hit) {
+      const prices = hit?.variants.map((obj) =>
+        isOnSale(obj) ? obj?.sale?.salePrice : obj?.price
+      );
+      const allSame = prices.every((price) => price === prices[0]);
+
+      return prices.length == 1
+        ? `Ksh. ${prices[0]}`
+        : prices.length > 1 && allSame
+        ? `Ksh. ${prices[0]}`
+        : `Ksh. ${Math.min(...prices)} - ${Math.max(...prices)}`;
+    }
+    return "";
+  };
+
+  const calculatePercentageDifference = (price, salePrice) => {
+    return ((price - salePrice) / price) * 100;
+  };
+
+  const findLargestPercentageDifference = () => {
+    let largestDifference = 0;
+
+    hit?.variants.forEach((variant) => {
+      const { price, sale } = variant;
+
+      if (sale?.endTime) {
+        const percentageDifference = calculatePercentageDifference(
+          price,
+          sale?.salePrice
+        );
+
+        if (percentageDifference > largestDifference) {
+          largestDifference = percentageDifference;
+        }
+      }
+    });
+
+    return largestDifference;
+  };
 
   const [_, _updateProduct] = useMutation(UPDATE_PRODUCT);
 
   return (
-    <div>
-      <div className="flex justify-between pb-3 border-b-slate-300 border-b-[0.5px]">
+    <div className="relative">
+      {findLargestPercentageDifference() != 0 && (
+        <Badge
+          radius={null}
+          size="lg"
+          color="orange"
+          className="absolute top-0 left-0 z-20"
+        >
+          -{findLargestPercentageDifference().toFixed(0)}%
+        </Badge>
+      )}
+      <div className="flex justify-between pb-3 border-b-slate-300 border-b-[0.5px] ml-4">
         <div className="flex space-x-5">
           <img
             src={hit?.images[0]}
@@ -79,10 +129,8 @@ export default function ProductCardAdmin({ hit }) {
               {hit?.name}
             </Text>
 
-            <p className="text-[#228B22] text-[0.9rem]">
-              Ksh. {hit?.variants[0]?.price}
-            </p>
-            <Badge color="dark" uppercase radius={null}>
+            <p className="text-[#228B22] text-[0.9rem]">{getPriceLabel()}</p>
+            <Badge color="green" uppercase radius={null}>
               {hit?.category}
             </Badge>
           </div>
@@ -145,8 +193,7 @@ export default function ProductCardAdmin({ hit }) {
         >
           <Tabs.List>
             <Tabs.Tab value="meta">Metadata</Tabs.Tab>
-            <Tabs.Tab value="sales">Sales</Tabs.Tab>
-            <Tabs.Tab value="availability">Availability</Tabs.Tab>
+
             <Tabs.Tab value="removal">Removal</Tabs.Tab>
           </Tabs.List>
 
@@ -159,26 +206,7 @@ export default function ProductCardAdmin({ hit }) {
               />
             </div>
           </Tabs.Panel>
-          <Tabs.Panel value="sales">Second panel</Tabs.Panel>
-          <Tabs.Panel value="availability">
-            <div className="mt-[15px] space-y-6">
-              <Card shadow="sm" padding="sm" radius="md" withBorder>
-                <Group position="apart" mt="md" mb="xs">
-                  <Text weight={500}>Make product unavailable</Text>
-                  <Switch
-                    color="red"
-                    checked={unavailable}
-                    onChange={(e) => setUnavailable(e.target.checked)}
-                  />
-                </Group>
-              </Card>
 
-              <Text>
-                When enabled , your shoppers can no longer shop this product
-                until you disable it.
-              </Text>
-            </div>
-          </Tabs.Panel>
           <Tabs.Panel value="removal">
             <div className="mt-[15px] space-y-6">
               <Text>Type your password to remove this product</Text>
