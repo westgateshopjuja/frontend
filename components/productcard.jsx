@@ -12,8 +12,8 @@ import { isAfter, isBefore } from "date-fns";
 export const isOnSale = (variant) => {
   if (variant?.sale?.startTime && variant?.sale?.endTime) {
     const currentTime = Date.now();
-    const startTimestamp = parseInt(variant?.sale?.startTime);
-    const endTimestamp = parseInt(variant?.sale?.endTime);
+    const startTimestamp = Number(variant?.sale?.startTime);
+    const endTimestamp = Number(variant?.sale?.endTime);
     if (
       isAfter(currentTime, startTimestamp) &&
       isBefore(currentTime, endTimestamp)
@@ -188,16 +188,17 @@ export default function ProductCard({ hit }) {
         </UnstyledButton>
       )}
 
-      {findLargestPercentageDifference() != 0 && (
-        <Badge
-          radius={null}
-          size="lg"
-          color="orange"
-          className="absolute top-0 left-0 z-20"
-        >
-          -{findLargestPercentageDifference().toFixed(0)}%
-        </Badge>
-      )}
+      {hit.variants.some(isOnSale) &&
+        findLargestPercentageDifference() != 0 && (
+          <Badge
+            radius={null}
+            size="lg"
+            color="orange"
+            className="absolute top-0 left-0 z-20"
+          >
+            -{findLargestPercentageDifference().toFixed(0)}%
+          </Badge>
+        )}
 
       <Carousel
         infiniteLoop

@@ -450,7 +450,7 @@ const Page = ({ admin }) => {
   );
 };
 
-const ProductList = () => {
+const ProductList = ({ admin }) => {
   const { hits, isLastPage, showMore } = useInfiniteHits();
 
   const scrollDiv = useRef();
@@ -472,7 +472,7 @@ const ProductList = () => {
       onScroll={fetchMore}
     >
       {hits.map((hit, i) => (
-        <ProductCardAdmin key={i} hit={hit} />
+        <ProductCardAdmin admin={admin} key={i} hit={hit} />
       ))}
     </div>
   );
@@ -491,6 +491,7 @@ const SearchBox = () => {
 };
 
 const Products = ({ admin }) => {
+  const router = useRouter();
   const ADD_PRODUCT = `
     mutation ADD_PRODUCT(
         $name: String
@@ -550,21 +551,6 @@ const Products = ({ admin }) => {
 
   const [permissionModal, setPermissionModal] = useState(false);
 
-  const getBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      let base64;
-      reader.readAsDataURL(file);
-      reader.onloadend = () => {
-        base64 = reader.result;
-        resolve(base64);
-      };
-      reader.onerror = () => {
-        reject(null);
-      };
-    });
-  };
-
   const handleCloseModal = () => {
     setProduct({
       name: "",
@@ -589,25 +575,39 @@ const Products = ({ admin }) => {
 
   const saveProduct = async () => {
     setLoading(true);
-    let _imgs = [];
 
-    let _variants = [];
+    console.log(variant);
 
-    for (let _i of images) {
-      let i_b64 = await getBase64(_i);
-      _imgs.push(i_b64);
+    if (variants?.length == 0) {
+      notifications.show({
+        title: "Warning",
+        icon: <IconExclamationMark />,
+        color: "orange",
+        message:
+          "No variants added, meaning no price has been set for the product",
+      });
+      setLoading(false);
+      return;
     }
 
-    for (let _variant of variants) {
-      if (_variant?.thumbnail) {
-        let i_b64 = await getBase64(_variant?.thumbnail);
-        let _v = {
-          thumbnail: i_b64,
-          label: _variant?.label,
-          price: _variant?.price,
-        };
-        _variants.push(_v);
-      } else {
+    const formData = new FormData();
+
+    for (const image of images) {
+      formData.append("files", image);
+    }
+
+    let response = await fetch("/api/uploadImg", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(data.uploadedImages);
+
+      let _variants = [];
+
+      for (let _variant of variants) {
         let _v = {
           thumbnail: null,
           label: _variant?.label,
@@ -615,44 +615,54 @@ const Products = ({ admin }) => {
         };
         _variants.push(_v);
       }
-    }
 
-    let _product = {
-      name: product?.name,
-      description: product?.description,
-      category: product?.category,
-      variants: JSON.stringify(_variants),
-      additionalInformation: JSON.stringify(additionals),
-      images: _imgs,
-    };
+      let _product = {
+        name: product?.name,
+        description: product?.description,
+        category: product?.category,
+        variants: JSON.stringify(_variants),
+        additionalInformation: JSON.stringify(additionals),
+        images: data?.uploadedImages,
+      };
 
-    _addProduct({
-      ..._product,
-    })
-      .then((data, error) => {
-        if (data?.data?.addProduct && !error) {
-          notifications.show({
-            title: "Product uploaded successfully",
-            icon: <IconCheck />,
-            color: "green",
-            message: "Your customers can now shop this product",
-          });
-          handleCloseModal();
-        } else {
-          notifications.show({
-            title: "Error",
-            icon: <IconExclamationMark />,
-            color: "red",
-            message: "Something occured. We couldn't upload your product",
-          });
-        }
+      _addProduct({
+        ..._product,
       })
-      .catch((err) => {
-        console.log(err);
-      })
-      .finally(() => {
-        setLoading(false);
+        .then((data, error) => {
+          if (data?.data?.addProduct && !error) {
+            notifications.show({
+              title: "Product uploaded successfully",
+              icon: <IconCheck />,
+              color: "green",
+              message: "Your customers can now shop this product",
+            });
+            handleCloseModal();
+            router.reload();
+          } else {
+            notifications.show({
+              title: "Error",
+              icon: <IconExclamationMark />,
+              color: "red",
+              message: "Something occured. We couldn't upload your product",
+            });
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      // Handle error
+      notifications.show({
+        title: "Error",
+        icon: <IconExclamationMark />,
+        color: "red",
+        message: "Something occured. We couldn't upload your product",
       });
+      setLoading(false);
+    }
   };
 
   const saveVariant = () => {
@@ -731,7 +741,7 @@ const Products = ({ admin }) => {
   return (
     <div className="space-y-8 py-6 relative max-h-[calc(100vh-96px)] h-[calc(100vh-96px)] overflow-y-auto">
       <SearchBox />
-      <ProductList />
+      <ProductList admin={admin} />
       <Button
         h={56}
         w={56}
@@ -833,7 +843,6 @@ const Products = ({ admin }) => {
             )}
           </div>
           <input
-            multiple
             onChange={(e) => {
               setImages(e.target.files);
             }}
@@ -842,16 +851,16 @@ const Products = ({ admin }) => {
             className="hidden"
           />
           <div className="w-full py-12 justify-center align-middle items-center relative">
-            <p className="w-full text-center mb-2">Upload images</p>
+            {images.length == 0 && (
+              <p className="w-full text-center mb-2">No images selected</p>
+            )}
             <Button
-              p={0}
-              w={56}
-              h={56}
               onClick={() => imagePicker.current.click()}
               color="dark"
-              className="translate-x-[-50%] left-[50%] absolute"
+              className="mx-auto"
+              leftIcon={<IconPlus />}
             >
-              <IconPlus />
+              Upload
             </Button>
           </div>
           <TextInput
@@ -959,54 +968,6 @@ const Products = ({ admin }) => {
             transitionProps={{ transition: "fade", duration: 200 }}
           >
             <div className="p-8 space-y-8">
-              <img src="/variant.png" className="mx-auto" />
-              <input
-                type="file"
-                ref={variantThumbnail}
-                className="hidden"
-                onChange={(e) => {
-                  setVariant((variant) => {
-                    return {
-                      ...variant,
-                      thumbnail: e.target.files[0],
-                    };
-                  });
-                }}
-              />
-              {variant?.thumbnail && (
-                <div className="p-8 relative w-[90%]">
-                  <img
-                    src={URL.createObjectURL(variant?.thumbnail)}
-                    alt="product"
-                    className="aspect-auto"
-                  />
-                  <button
-                    onClick={() =>
-                      setVariant((variant) => {
-                        return {
-                          ...variant,
-                          thumbnail: null,
-                        };
-                      })
-                    }
-                    className="absolute top-0 right-0 h-[40px] w-[40px] bg-red-800 rounded-full text-white m-0 p-0"
-                  >
-                    <IconX className="mx-auto" />
-                  </button>
-                </div>
-              )}
-              <Button
-                fw="lighter"
-                uppercase
-                color="dark"
-                variant="outline"
-                fullWidth
-                size="xs"
-                onClick={() => variantThumbnail.current.click()}
-              >
-                <IconPlus size={12} style={{ marginRight: 12 }} /> Upload
-                thumbnail
-              </Button>
               <TextInput
                 placeholder="ex. L ,S"
                 label="Variant label"

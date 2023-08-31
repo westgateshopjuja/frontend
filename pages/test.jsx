@@ -1,40 +1,37 @@
-import { Button } from "@mantine/core";
-import { Novu } from "@novu/node";
-import {
-  NovuProvider,
-  PopoverNotificationCenter,
-  NotificationBell,
-  IMessage,
-} from "@novu/notification-center";
-import { Loader } from "../components";
+import React from "react";
+import { useInfiniteHits } from "react-instantsearch";
+import { ProductCard } from "../components";
 
-const novu = new Novu(process.env.NEXT_PUBLIC_NOVU_API_KEY);
+const ProductList = () => {
+  const saleTimestamp = Date.now(); // Current timestamp in milliseconds
 
-export default function Test() {
-  const triggerNotification = async () => {
-    const response = await novu
-      .trigger("on-boarding-notification-A72_hAYmG", {
-        to: {
-          subscriberId: process.env.NEXT_PUBLIC_NOVU_SUBSCRIBER_ID,
-        },
-        payload: {
-          number: 45,
-        },
-      })
-      .catch((err) => console.error(err));
-    return response;
+  const productOnSaleFilter = (hit) => {
+    return hit.variants.some(
+      (variant) =>
+        variant.sale &&
+        Number(variant.sale.startTime) <= saleTimestamp &&
+        saleTimestamp <= Number(variant.sale.endTime)
+    );
   };
 
-  function onNotificationClick(message) {
-    // your logic to handle the notification click
-    if (message?.cta?.data?.url) {
-      window.location.href = message.cta.data.url;
-    }
-  }
+  const {
+    hits: hits2,
+    isLastPage: isLastPage2,
+    showMore: showMore2,
+  } = useInfiniteHits();
+
+  const filteredHits = hits2.filter(productOnSaleFilter);
 
   return (
-    <div className="bg-[#228B22] w-full h-screen">
-      <Loader />
+    <div>
+      <h1>Products on Sale</h1>
+      <div className="w-full flex overflow-x-auto space-x-8">
+        {filteredHits.map((_hit, i) => (
+          <ProductCard key={i} hit={_hit} />
+        ))}
+      </div>
     </div>
   );
-}
+};
+
+export default ProductList;

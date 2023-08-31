@@ -2,27 +2,18 @@ import {
   Accordion,
   Badge,
   Button,
-  Card,
   Divider,
-  Group,
-  HoverCard,
-  Kbd,
   Modal,
   NumberInput,
   PasswordInput,
-  Popover,
   Space,
-  Switch,
   Tabs,
   Text,
   TextInput,
 } from "@mantine/core";
 
-import Editable from "./editable";
-
 import { IconCheck, IconExclamationMark, IconPlus, IconX } from "@tabler/icons";
 
-import moment from "moment";
 import { useRef, useState } from "react";
 import Variant from "./variant";
 import Additional from "./additional";
@@ -33,9 +24,10 @@ import { useMutation } from "urql";
 import { notifications } from "@mantine/notifications";
 import { isOnSale } from "./productcard";
 
-export default function ProductCardAdmin({ hit }) {
+export default function ProductCardAdmin({ hit, admin }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [password, setPassword] = useState("");
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   const UPDATE_PRODUCT = `
     mutation UPDATE_PRODUCT(
@@ -62,6 +54,7 @@ export default function ProductCardAdmin({ hit }) {
       }
     }
   `;
+
   const getPriceLabel = () => {
     if (hit) {
       const prices = hit?.variants.map((obj) =>
@@ -104,6 +97,44 @@ export default function ProductCardAdmin({ hit }) {
   };
 
   const [_, _updateProduct] = useMutation(UPDATE_PRODUCT);
+
+  const removeProduct = () => {
+    setLoadingDelete(true);
+    if (password !== admin?.password) {
+      notifications.show({
+        color: "red",
+        title: "Incorrect password",
+      });
+      setLoadingDelete(false);
+      return;
+    }
+
+    _updateProduct({
+      id: hit?.id,
+      deleted: true,
+    }).then((data, error) => {
+      if (data?.data?.updateProduct && !error) {
+        notifications.show({
+          title: "Product deleted",
+          icon: <IconCheck />,
+          color: "green",
+          message:
+            "Refresh page to view changes. Your customers can no longer shop this product and all its variants",
+        });
+        setLoadingDelete(false);
+        setModalOpen(false);
+      } else {
+        notifications.show({
+          title: "Error",
+          icon: <IconExclamationMark />,
+          color: "red",
+          message:
+            "Something occured. We couldn't delete this product at the moment",
+        });
+        setLoadingDelete(false);
+      }
+    });
+  };
 
   return (
     <div className="relative">
@@ -214,7 +245,14 @@ export default function ProductCardAdmin({ hit }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <Button color="red" fullWidth fw="lighter" uppercase>
+              <Button
+                loading={loadingDelete}
+                color="red"
+                fullWidth
+                fw="lighter"
+                uppercase
+                onClick={removeProduct}
+              >
                 Remove product
               </Button>
             </div>

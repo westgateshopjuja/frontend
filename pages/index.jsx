@@ -10,11 +10,22 @@ import { useRef, useState } from "react";
 import { useInfiniteHits, useSearchBox } from "react-instantsearch";
 
 export default function Home() {
-  const [value, setValue] = useState(["earrings"]);
+  const saleTimestamp = Date.now();
 
   const { refine } = useSearchBox();
   const router = useRouter();
   const { hits, isLastPage, showMore } = useInfiniteHits();
+
+  const productOnSaleFilter = (hit) => {
+    return hit.variants.some(
+      (variant) =>
+        variant.sale &&
+        Number(variant.sale.startTime) <= saleTimestamp &&
+        saleTimestamp <= Number(variant.sale.endTime)
+    );
+  };
+
+  const filteredHits = hits.filter(productOnSaleFilter);
 
   const scrollDiv = useRef();
 
@@ -71,6 +82,18 @@ export default function Home() {
         </div> */}
 
         <div className="mt-8 space-y-1">
+          <div className="flex justify-between px-4 text-[0.8rem] font-medium items-baseline">
+            <h1 className="font-medium text-[1.2rem]">On sale</h1>
+          </div>
+
+          <div className="gap-8 overflow-y-auto w-full p-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+            {filteredHits.map((_hit, i) => (
+              <ProductCard key={i} hit={_hit} />
+            ))}
+          </div>
+
+          <br />
+
           <div className="flex justify-between px-4 text-[0.8rem] font-medium items-baseline">
             <h1 className="font-medium text-[1.2rem]">All products</h1>
           </div>

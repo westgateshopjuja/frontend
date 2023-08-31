@@ -24,13 +24,12 @@ export default function ProductSearch({
   };
   const router = useRouter();
   return (
-    <div className="flex space-x-3 w-full p-3">
+    <div
+      className="flex space-x-3 w-full p-3"
+      onClick={() => router.push(`/product/${action?.id}`)}
+    >
       <div className="w-1/3 max-w-[70px]">
-        <img
-          onClick={() => router.push(`/product/${action?.id}`)}
-          className="w-full"
-          src={action?.images[0]}
-        />
+        <img className="w-full" src={action?.images[0]} />
       </div>
       <div>
         <Text lineClamp={2} className="text-[#2c2c2c] font-medium">
