@@ -122,6 +122,8 @@ export default function Product() {
   const [loading, setLoading] = useState(false);
   const [variant, setVariant] = useState();
 
+  console.log(error, fetching);
+
   if (fetching) return <LoadingComponent />;
   if (error) return <p>Error...</p>;
 
@@ -439,12 +441,12 @@ export default function Product() {
                 </Accordion.Control>
                 <Accordion.Panel>
                   <div className="space-y-2 p-2">
-                    {product?.additionalInformation.length < 1 ? (
+                    {product?.additionalInformation?.length < 1 ? (
                       <div className="bg-gray-100 p-4 border-t-2 border-[#228B22] text-[#228B22]">
                         <Text>No additional Information.</Text>
                       </div>
                     ) : (
-                      product?.additionalInformation.map((info, i) => (
+                      product?.additionalInformation?.map((info, i) => (
                         <p key={i} className="font-medium">
                           {info?.label}:{" "}
                           <span className="font-light">{info?.value}</span>
@@ -458,17 +460,17 @@ export default function Product() {
               <Accordion.Item value="reviews">
                 <Accordion.Control>
                   <p className="font-medium">
-                    Reviews ({product?.reviews.length})
+                    Reviews ({product?.reviews?.length})
                   </p>
                 </Accordion.Control>
                 <Accordion.Panel>
                   <div className="space-y-8">
-                    {product?.reviews.length < 1 ? (
+                    {product?.reviews?.length < 1 ? (
                       <div className="bg-gray-100 p-4 border-t-2 border-[#228B22] text-[#228B22]">
                         <Text>No reviews yet.</Text>
                       </div>
                     ) : (
-                      product?.reviews.map((review, i) => (
+                      product?.reviews?.map((review, i) => (
                         <Review key={i} review={review} />
                       ))
                     )}

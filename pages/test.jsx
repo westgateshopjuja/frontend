@@ -1,35 +1,16 @@
+import { Button } from "@mantine/core";
 import React from "react";
-import { useInfiniteHits } from "react-instantsearch";
-import { ProductCard } from "../components";
 
 const ProductList = () => {
-  const saleTimestamp = Date.now(); // Current timestamp in milliseconds
+  const triggerSTK = async () => {
+    const res = await fetch(`/api/tinypesa-init`);
 
-  const productOnSaleFilter = (hit) => {
-    return hit.variants.some(
-      (variant) =>
-        variant.sale &&
-        Number(variant.sale.startTime) <= saleTimestamp &&
-        saleTimestamp <= Number(variant.sale.endTime)
-    );
+    console.log(await res.json());
   };
-
-  const {
-    hits: hits2,
-    isLastPage: isLastPage2,
-    showMore: showMore2,
-  } = useInfiniteHits();
-
-  const filteredHits = hits2.filter(productOnSaleFilter);
 
   return (
     <div>
-      <h1>Products on Sale</h1>
-      <div className="w-full flex overflow-x-auto space-x-8">
-        {filteredHits.map((_hit, i) => (
-          <ProductCard key={i} hit={_hit} />
-        ))}
-      </div>
+      <Button onClick={triggerSTK}>Trigger STK</Button>
     </div>
   );
 };
